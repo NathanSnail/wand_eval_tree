@@ -16,7 +16,7 @@ end
 
 dofile("data/scripts/gun/gun.lua")
 
-local actions_per_round = 1
+local actions_per_round = 26
 local shuffle_deck_when_empty = false
 local reload_time = 0
 local deck_capacity = 26
@@ -113,24 +113,46 @@ ConfigGunActionInfo_ReadToLua(
 )
 _set_gun2()
 
-local function easy_add(id)
+local function easy_add(id, charges)
 	for _, v in ipairs(actions) do
 		if v.id == id then
-			_add_card_to_deck(id, 0, v.max_uses or -1, true)
+			_add_card_to_deck(id, 0, charges or v.max_uses or -1, true)
 			return
 		end
 	end
 end
-easy_add("LIGHT_BULLET_TRIGGER_2")
-easy_add("LIGHT_BULLET_TRIGGER")
-easy_add("LIGHT_BULLET_TRIGGER")
-easy_add("LIGHT_BULLET_TRIGGER")
+--[[easy_add("DIVIDE_10")
+easy_add("DBURST_3
+easy_add("LIGHT_BULLET")]]
+--[[easy_add("BURST_3")
 easy_add("LIGHT_BULLET")
-easy_add("LIGHT_BULLET")
-_start_shot(1000)
+easy_add("RUBBER_BALL")
+easy_add("LIGHT_BULLET")]]
+if #arg > 0 then
+	local p = 1
+	while p <= #arg do
+		if tonumber(arg[p + 1]) then
+			easy_add(arg[p], tonumber(arg[p + 1]))
+			p = p + 1
+		else
+			easy_add(arg[p])
+		end
+		p = p + 1
+	end
+else
+	easy_add("LIGHT_BULLET_TRIGGER")
+	easy_add("BURST_3")
+	easy_add("ADD_TRIGGER")
+	easy_add("ADD_TRIGGER")
+	easy_add("ADD_TRIGGER")
+	easy_add("DAMAGE")
+	easy_add("HOMING")
+	easy_add("BALL_LIGHTNING")
+	easy_add("BLACK_HOLE", 0)
+end
+_start_shot(10000000)
 _draw_actions_for_shot(true)
-calls = calls[1]
-print_table(calls)
+--print_table(calls)
 
 local out = ""
 local function handle(node, prefix, no_extra)
@@ -152,5 +174,8 @@ local function handle(node, prefix, no_extra)
 		handle(v, prefix .. "#", dont)
 	end
 end
-handle(calls, "")
+handle({ "WAND", calls }, "")
+if #arg ~= 0 then
+	out = "```\n" .. out .. "```"
+end
 print(out)
