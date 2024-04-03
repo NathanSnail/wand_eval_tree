@@ -3,6 +3,32 @@
 package.path = package.path
 	.. ";/home/nathan/Documents/code/AutoLuaAPI/?.lua;/home/nathan/Documents/code/noitadata/?.lua"
 require("out")
+function Random(a, b)
+	if not a and not b then
+		return math.random()
+	end
+	if not b then
+		b = a
+		a = 0
+	end
+	return math.floor(math.random() * (b - a + 1)) + a
+end
+
+local _Random = Random
+Random = function(a, b)
+	local res = _Random(a, b)
+	print(res)
+	return res
+end
+
+function SetRandomSeed(x, y)
+	math.randomseed(x * 591.321 + y * 8541.123 + 124.545)
+end
+
+function GameGetFrameNum()
+	return 0
+end
+
 local print_table = require("print")
 
 function dofile(file)
