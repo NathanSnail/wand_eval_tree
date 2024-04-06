@@ -3,6 +3,8 @@
 package.path = package.path
 	.. ";/home/nathan/Documents/code/AutoLuaAPI/?.lua;/home/nathan/Documents/code/noitadata/?.lua"
 require("out")
+local socket = require("socket")
+local frame = math.floor(socket.gettime() * 1000) % 2 ^ 16
 function Random(a, b)
 	if not a and not b then
 		return math.random()
@@ -14,11 +16,14 @@ function Random(a, b)
 	return math.floor(math.random() * (b - a + 1)) + a
 end
 
-local _Random = Random
-Random = function(a, b)
-	local res = _Random(a, b)
-	print(res)
-	return res
+local _globals = {}
+
+function GlobalsSetValue(key, value)
+	_globals[key] = value
+end
+
+function GlobalsGetValue(key, value)
+	return _globals[key] or value
 end
 
 function SetRandomSeed(x, y)
@@ -26,7 +31,7 @@ function SetRandomSeed(x, y)
 end
 
 function GameGetFrameNum()
-	return 0
+	return frame
 end
 
 local print_table = require("print")
@@ -139,26 +144,30 @@ ConfigGunActionInfo_ReadToLua(
 )
 _set_gun2()
 
-local function easy_add(id, charges)
+local function easy_add(id, charges, zerod)
 	for _, v in ipairs(actions) do
 		if v.id == id then
-			_add_card_to_deck(id, 0, charges or v.max_uses or -1, true)
+			_add_card_to_deck(
+				id,
+				0,
+				(not v.never_unlimited and -1) or charges or (zerod and 0 or v.max_uses) or -1,
+				true
+			)
 			return
 		end
 	end
 end
---[[easy_add("DIVIDE_10")
-easy_add("DBURST_3
-easy_add("LIGHT_BULLET")]]
---[[easy_add("BURST_3")
-easy_add("LIGHT_BULLET")
-easy_add("RUBBER_BALL")
-easy_add("LIGHT_BULLET")]]
+
 if #arg > 0 then
 	local p = 1
+	local zerod = false
+	if arg[p] == "-c" then
+		zerod = true
+		p = p + 1
+	end
 	while p <= #arg do
 		if tonumber(arg[p + 1]) then
-			easy_add(arg[p], tonumber(arg[p + 1]))
+			easy_add(arg[p], tonumber(arg[p + 1]), zerod)
 			p = p + 1
 		else
 			easy_add(arg[p])
@@ -166,7 +175,7 @@ if #arg > 0 then
 		p = p + 1
 	end
 else
-	easy_add("LIGHT_BULLET_TRIGGER")
+	--[[easy_add("LIGHT_BULLET_TRIGGER")
 	easy_add("BURST_3")
 	easy_add("ADD_TRIGGER")
 	easy_add("ADD_TRIGGER")
@@ -174,11 +183,44 @@ else
 	easy_add("DAMAGE")
 	easy_add("HOMING")
 	easy_add("BALL_LIGHTNING")
-	easy_add("BLACK_HOLE", 0)
+	easy_add("BLACK_HOLE", 0)]]
 end
 _start_shot(10000000)
 _draw_actions_for_shot(true)
 --print_table(calls)
+
+local function make_text(node)
+	local build = (node[3] or 1) .. node[1] .. "["
+	for _, v in ipairs(node[2]) do
+		build = build .. make_text(v)
+	end
+	return build .. "]"
+end
+
+local function flatten(node)
+	local i = 1
+	local last = ""
+	local cur_c = 1
+	while i <= #node[2] do
+		print(i)
+		local v = flatten(node[2][i])
+		local cur = make_text(v)
+		if last == cur then
+			cur_c = cur_c + 1
+			table.remove(node[2], i)
+		else
+			last = cur
+			if i ~= 1 then
+				node[2][i - 1][3] = cur_c
+				cur_c = 1
+			end
+			i = i + 1
+		end
+	end
+	return node
+end
+
+print_table(flatten({ "HAMIS", { { "SPAR BOL", {} }, { "NUKES!", {} }, { "NUKES!", {} }, { "HAMIS2", {} } } }))
 
 local out = ""
 local function handle(node, prefix, no_extra)
