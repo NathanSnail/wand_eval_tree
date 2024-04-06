@@ -198,11 +198,11 @@ local function make_text(node)
 end
 
 local function flatten(node)
+	node[3] = 1
 	local i = 1
 	local last = ""
 	local cur_c = 1
 	while i <= #node[2] do
-		print(i)
 		local v = flatten(node[2][i])
 		local cur = make_text(v)
 		if last == cur then
@@ -210,6 +210,8 @@ local function flatten(node)
 			table.remove(node[2], i)
 		else
 			last = cur
+			print_table(v)
+			print(i)
 			if i ~= 1 then
 				node[2][i - 1][3] = cur_c
 				cur_c = 1
@@ -220,7 +222,10 @@ local function flatten(node)
 	return node
 end
 
-print_table(flatten({ "HAMIS", { { "SPAR BOL", {} }, { "NUKES!", {} }, { "NUKES!", {} }, { "HAMIS2", {} } } }))
+print_table(flatten({
+	"HAMIS",
+	{ { "SPAR BOL", {} }, { "NUKES!", { { "THING", {} } } }, { "NUKES!", { { "THING", {} } } }, { "HAMIS2", {} } },
+}))
 
 local out = ""
 local function handle(node, prefix, no_extra)
