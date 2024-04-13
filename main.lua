@@ -46,23 +46,45 @@ function BeginProjectile(p)
 end
 
 dofile("data/scripts/gun/gun.lua")
-
 local actions_per_round = 26
 local shuffle_deck_when_empty = false
 local reload_time = 0
 local deck_capacity = 26
 
+local function dbg_cards(pile)
+	for _, v in ipairs(pile) do
+		print(v.id)
+	end
+end
+local function dbg_wand()
+	print("discard")
+	dbg_cards(discarded)
+	print("hand")
+	dbg_cards(hand)
+	print("deck")
+	dbg_cards(deck)
+end
+
 local calls = {}
 local cur_node = calls
+local id = 0
 for _, v in ipairs(actions) do
 	local _a = v.action
 	v.action = function(...)
+		--print(v.id, "happens")
 		local old_node = cur_node
 		local new_node = { v.id, {} }
 		cur_node = new_node[2]
 		table.insert(old_node, new_node)
-		_a(...)
+		local cur_id = id
+		id = id + 1
+		--print("pre of ", cur_id)
+		--dbg_wand()
+		local res = { _a(...) }
+		--print("post of ", cur_id)
+		--dbg_wand()
 		cur_node = old_node
+		return unpack(res)
 	end
 end
 ConfigGun_ReadToLua(actions_per_round, shuffle_deck_when_empty, reload_time, deck_capacity)
@@ -170,20 +192,19 @@ if #arg > 0 then
 			easy_add(arg[p], tonumber(arg[p + 1]), zerod)
 			p = p + 1
 		else
-			easy_add(arg[p])
+			if zerod then
+				easy_add(arg[p], 0, true)
+			else
+				easy_add(arg[p])
+			end
 		end
 		p = p + 1
 	end
 else
-	--[[easy_add("LIGHT_BULLET_TRIGGER")
-	easy_add("BURST_3")
+	easy_add("DIVIDE_4")
 	easy_add("ADD_TRIGGER")
-	easy_add("ADD_TRIGGER")
-	easy_add("ADD_TRIGGER")
-	easy_add("DAMAGE")
 	easy_add("HOMING")
-	easy_add("BALL_LIGHTNING")
-	easy_add("BLACK_HOLE", 0)]]
+	easy_add("BLOOD_MAGIC")
 end
 _start_shot(10000000)
 _draw_actions_for_shot(true)
@@ -210,8 +231,6 @@ local function flatten(node)
 			table.remove(node[2], i)
 		else
 			last = cur
-			print_table(v)
-			print(i)
 			if i ~= 1 then
 				node[2][i - 1][3] = cur_c
 				cur_c = 1
@@ -219,15 +238,62 @@ local function flatten(node)
 			i = i + 1
 		end
 	end
+	if i ~= 1 then
+		node[2][i - 1][3] = cur_c
+		cur_c = 1
+	end
 	return node
 end
 
-print_table(flatten({
+--[[print_table(flatten({
 	"HAMIS",
 	{ { "SPAR BOL", {} }, { "NUKES!", { { "THING", {} } } }, { "NUKES!", { { "THING", {} } } }, { "HAMIS2", {} } },
-}))
+}))]]
 
+---@class (exact) tree
+---@field name string
+---@field children tree[]
+
+---@type tree
+local t = {
+	name = "ROOT",
+	children = {
+		{
+			name = "ROOT2",
+			children = {
+				{ name = "THING", children = {
+					{ name = "THING2", children = {} },
+				} },
+				{ name = "THING", children = {
+					{ name = "THING2", children = {} },
+				} },
+			},
+		},
+	},
+}
+
+---@param tree tree
+---@return table
+local function normalise(tree)
+	local cur = {}
+	cur[1] = tree.name
+	cur[2] = {}
+	for k, v in ipairs(tree.children) do
+		cur[2][k] = normalise(v)
+	end
+	return cur
+end
+
+-- print_table(flatten(normalise(t)))
+
+calls = { "WAND", calls }
+do
+	-- return
+end
+--print_table(calls)
+flatten(calls)
 local out = ""
+
 local function handle(node, prefix, no_extra)
 	local t_prefix = ""
 	for k = 1, prefix:len() do
@@ -238,7 +304,7 @@ local function handle(node, prefix, no_extra)
 			t_prefix = t_prefix .. " "
 		end
 	end
-	out = out .. t_prefix .. node[1] .. "\n"
+	out = out .. t_prefix .. node[1] .. (node[3] ~= 1 and (" (" .. node[3] .. ")") or "") .. "\n"
 	for k, v in ipairs(node[2]) do
 		local dont = k == #node[2]
 		if no_extra then
@@ -247,7 +313,7 @@ local function handle(node, prefix, no_extra)
 		handle(v, prefix .. "#", dont)
 	end
 end
-handle({ "WAND", calls }, "")
+handle(calls, "")
 if #arg ~= 0 then
 	out = "```\n" .. out .. "```"
 end
