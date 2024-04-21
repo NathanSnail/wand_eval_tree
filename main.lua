@@ -69,7 +69,27 @@ local calls = {}
 local cur_node = calls
 local counts = {}
 local id = 0
+local ty_map = { WAND = ACTION_TYPE_DRAW_MANY }
+local col_map = {
+	[ACTION_TYPE_PROJECTILE] = 31,
+	[ACTION_TYPE_STATIC_PROJECTILE] = 31,
+	[ACTION_TYPE_MODIFIER] = 34,
+	[ACTION_TYPE_UTILITY] = 35,
+	[ACTION_TYPE_MATERIAL] = 32,
+	[ACTION_TYPE_OTHER] = 33,
+	[ACTION_TYPE_DRAW_MANY] = 36,
+}
+local colours = false
+
+local function id_text(id)
+	if not colours then
+		return id
+	end
+	return string.char(27) .. "[" .. col_map[ty_map[id]] .. "m" .. id .. string.char(27) .. "[30m"
+end
+
 for _, v in ipairs(actions) do
+	ty_map[v.id] = v.type
 	local _a = v.action
 	v.action = function(...)
 		--print(v.id, "happens")
@@ -118,9 +138,13 @@ end
 if #arg > 0 then
 	local p = 1
 	local zerod = false
-	if arg[p] == "-c" then
+	if arg[p] == "-c" or arg[p + 1] == "-c" then
 		zerod = true
 		p = p + 1
+	end
+	if arg[p] == "-a" or arg[p + 1] == "-a" then
+		p = p + 1
+		colours = true
 	end
 	while p <= #arg do
 		if tonumber(arg[p + 1]) then
@@ -136,6 +160,7 @@ if #arg > 0 then
 		p = p + 1
 	end
 else
+	colours = true
 	easy_add("DIVIDE_4")
 	easy_add("ADD_TRIGGER")
 	easy_add("HOMING")
@@ -239,7 +264,13 @@ local function handle(node, prefix, no_extra)
 			t_prefix = t_prefix .. " "
 		end
 	end
-	out = out .. t_prefix .. node[1] .. (node[3] ~= 1 and (" (" .. node[3] .. ")") or "") .. "\n"
+	out = out
+		.. t_prefix
+		.. id_text(node[1])
+		.. (node[3] ~= 1 and ((colours and (string.char(27) .. "[37m") or "") .. " (" .. node[3] .. ")" .. (colours and (string.char(
+			27
+		) .. "[30m") or "")) or "")
+		.. "\n"
 	for k, v in ipairs(node[2]) do
 		local dont = k == #node[2]
 		if no_extra then
@@ -249,9 +280,7 @@ local function handle(node, prefix, no_extra)
 	end
 end
 handle(calls, "")
-if #arg ~= 0 then
-	out = "```\n" .. out
-end
+out = (colours and "```ansi\n" or "") .. out
 print(out)
 local count_pairs = {}
 local big_length = 0
@@ -268,10 +297,12 @@ local count_message = "┌" .. ("─"):rep(big_length + 2) .. "┬" .. ("─"):r
 for _, v in ipairs(count_pairs) do
 	count_message = count_message
 		.. "│ "
-		.. v[1]
+		.. id_text(v[1])
 		.. (" "):rep(big_length - v[1]:len() + 1)
 		.. "│ "
+		.. (colours and (string.char(27) .. "[0m") or "")
 		.. v[2]
+		.. (colours and (string.char(27) .. "[30m") or "")
 		.. (" "):rep(big_length2 - v[2]:len() + 1)
 		.. "│\n"
 end
