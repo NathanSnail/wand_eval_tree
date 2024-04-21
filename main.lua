@@ -254,7 +254,63 @@ end
 flatten(calls)
 local out = ""
 
-local function handle(node, prefix, no_extra)
+local function pre_multiply(node, val)
+	node[3] = node[3] * val
+	for _, v in ipairs(node[2]) do
+		pre_multiply(v, node[3])
+	end
+end
+
+local function len(str)
+	return str:gsub("[\128-\191]", ""):len()
+end
+
+local bars = { { 1, 0, 0, 1 } }
+local function post_multiply()
+	local bar_idx = 1
+	local out_sp = {}
+	for str in out:gmatch("([^\n]+)") do
+		table.insert(out_sp, str)
+	end
+	for k, str in ipairs(out_sp) do
+		local colourless = str:gsub(string.char(27) .. ".-m", "")
+		if bars[bar_idx][2] < k then
+			bar_idx = bar_idx + 1
+		end
+		bars[bar_idx][3] = math.max(bars[bar_idx][3], len(colourless))
+	end
+	bar_idx = 1
+	for k, str in ipairs(out_sp) do
+		local colourless = str:gsub(string.char(27) .. ".-m", "")
+		if bars[bar_idx][2] < k then
+			bar_idx = bar_idx + 1
+		end
+		local extra = (" "):rep(bars[bar_idx][3] - len(colourless) + 1)
+		if bars[bar_idx][1] == bars[bar_idx][2] then
+			extra = extra .. "]"
+		elseif bars[bar_idx][1] == k then
+			extra = extra .. "┐"
+		elseif bars[bar_idx][2] == k then
+			extra = extra .. "┘"
+		else
+			extra = extra .. "│"
+		end
+		if math.floor((bars[bar_idx][1] + bars[bar_idx][2]) / 2) == k then
+			extra = extra
+				.. " "
+				.. (colours and (string.char(27) .. "[37m") or "")
+				.. bars[bar_idx][4]
+				.. (colours and (string.char(27) .. "[30m") or "")
+		end
+		if bars[bar_idx][4] ~= 1 then
+			out_sp[k] = out_sp[k] .. extra
+		end
+	end
+	out = table.concat(out_sp, "\n")
+end
+
+local function handle(node, prefix, no_extra, indent_level)
+	indent_level = indent_level or 0
 	local t_prefix = ""
 	for k = 1, prefix:len() do
 		local v = prefix:sub(k, k)
@@ -267,19 +323,26 @@ local function handle(node, prefix, no_extra)
 	out = out
 		.. t_prefix
 		.. id_text(node[1])
-		.. (node[3] ~= 1 and ((colours and (string.char(27) .. "[37m") or "") .. " (" .. node[3] .. ")" .. (colours and (string.char(
+		--[[.. (node[3] ~= 1 and ((colours and (string.char(27) .. "[37m") or "") .. " (" .. node[3] .. ")" .. (colours and (string.char(
 			27
-		) .. "[30m") or "")) or "")
+		) .. "[30m") or "")) or "")]]
 		.. "\n"
+	if bars[#bars][3] <= indent_level and bars[#bars][4] == node[3] then
+		bars[#bars][2] = bars[#bars][2] + 1
+	else
+		bars[#bars + 1] = { bars[#bars][2] + 1, bars[#bars][2] + 1, indent_level, node[3] }
+	end
 	for k, v in ipairs(node[2]) do
 		local dont = k == #node[2]
 		if no_extra then
 			prefix = prefix:sub(1, prefix:len() - 1) .. " "
 		end
-		handle(v, prefix .. "#", dont)
+		handle(v, prefix .. "#", dont, indent_level + 1)
 	end
 end
+pre_multiply(calls, 1)
 handle(calls, "")
+post_multiply()
 out = (colours and "```ansi\n" or "") .. out
 print(out)
 local count_pairs = {}
