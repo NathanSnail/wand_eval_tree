@@ -67,6 +67,7 @@ end
 
 local calls = {}
 local cur_node = calls
+local counts = {}
 local id = 0
 for _, v in ipairs(actions) do
 	local _a = v.action
@@ -74,6 +75,7 @@ for _, v in ipairs(actions) do
 		--print(v.id, "happens")
 		local old_node = cur_node
 		local new_node = { v.id, {} }
+		counts[v.id] = (counts[v.id] or 0) + 1
 		cur_node = new_node[2]
 		table.insert(old_node, new_node)
 		local cur_id = id
@@ -96,74 +98,7 @@ for _, v in ipairs(arg_list) do
 	table.insert(value, data[v])
 end
 
-ConfigGunActionInfo_ReadToLua(
-	unpack(value)
-	--action_id,
-	--action_name,
-	--action_description,
-	--action_sprite_filename,
-	--action_unidentified_sprite_filename,
-	--action_type,
-	--action_spawn_level,
-	--action_spawn_probability,
-	--action_spawn_requires_flag,
-	--action_spawn_manual_unlock,
-	--action_max_uses,
-	--custom_xml_file,
-	--action_mana_drain,
-	--action_is_dangerous_blast,
-	--action_draw_many_count,
-	--action_ai_never_uses,
-	--action_never_unlimited,
-	--state_shuffled,
-	--state_cards_drawn,
-	--state_discarded_action,
-	--state_destroyed_action,
-	--fire_rate_wait,
-	--speed_multiplier,
-	--child_speed_multiplier,
-	--dampening,
-	--explosion_radius,
-	--spread_degrees,
-	--pattern_degrees,
-	--screenshake,
-	--recoil,
-	--damage_melee_add,
-	--damage_projectile_add,
-	--damage_electricity_add,
-	--damage_fire_add,
-	--damage_explosion_add,
-	--damage_ice_add,
-	--damage_slice_add,
-	--damage_healing_add,
-	--damage_curse_add,
-	--damage_drill_add,
-	--damage_null_all,
-	--damage_critical_chance,
-	--damage_critical_multiplier,
-	--explosion_damage_to_materials,
-	--knockback_force,
-	--reload_time,
-	--lightning_count,
-	--material,
-	--material_amount,
-	--trail_material,
-	--trail_material_amount,
-	--bounces,
-	--gravity,
-	--light,
-	--blood_count_multiplier,
-	--gore_particles,
-	--ragdoll_fx,
-	--friendly_fire,
-	--physics_impulse_coeff,
-	--lifetime_add,
-	--sprite,
-	--extra_entities,
-	--game_effect_entities,
-	--sound_loop_tag,
-	--projectile_file
-)
+ConfigGunActionInfo_ReadToLua(unpack(value))
 _set_gun2()
 
 local function easy_add(id, charges, zerod)
@@ -315,6 +250,36 @@ local function handle(node, prefix, no_extra)
 end
 handle(calls, "")
 if #arg ~= 0 then
-	out = "```\n" .. out .. "```"
+	out = "```\n" .. out
 end
 print(out)
+local count_pairs = {}
+local big_length = 0
+local big_length2 = 0
+for k, v in pairs(counts) do
+	table.insert(count_pairs, { k, tostring(v), v })
+	big_length = math.max(big_length, k:len())
+	big_length2 = math.max(big_length2, tostring(v):len())
+end
+table.sort(count_pairs, function(a, b)
+	return a[3] > b[3]
+end)
+local count_message = "┌" .. ("─"):rep(big_length + 2) .. "┬" .. ("─"):rep(big_length2 + 2) .. "┐\n"
+for _, v in ipairs(count_pairs) do
+	count_message = count_message
+		.. "│ "
+		.. v[1]
+		.. (" "):rep(big_length - v[1]:len() + 1)
+		.. "│ "
+		.. v[2]
+		.. (" "):rep(big_length2 - v[2]:len() + 1)
+		.. "│\n"
+end
+count_message = count_message
+	.. "└"
+	.. ("─"):rep(big_length + 2)
+	.. "┴"
+	.. ("─"):rep(big_length2 + 2)
+	.. "┘\n"
+print(count_message)
+print("```")
