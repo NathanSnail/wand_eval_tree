@@ -354,7 +354,13 @@ for k, v in pairs(counts) do
 	big_length2 = math.max(big_length2, tostring(v):len())
 end
 table.sort(count_pairs, function(a, b)
-	return a[3] > b[3]
+	if a[3] ~= b[3] then
+		return a[3] > b[3]
+	end
+	if col_map[ty_map[a[1]]] ~= col_map[ty_map[b[1]]] then
+		return col_map[ty_map[a[1]]] > col_map[ty_map[b[1]]]
+	end
+	return a[1] > b[1]
 end)
 local count_message = "┌" .. ("─"):rep(big_length + 2) .. "┬" .. ("─"):rep(big_length2 + 2) .. "┐\n"
 for _, v in ipairs(count_pairs) do
