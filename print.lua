@@ -34,7 +34,7 @@ return function(node)
 				if type(v) == "number" or type(v) == "boolean" then
 					output_str = output_str .. string.rep("\t", depth) .. key .. " = " .. tostring(v)
 				elseif type(v) == "table" then
-					output_str = output_str .. string.rep("\t", depth) .. key .. " = {\n"
+					output_str = output_str .. string.rep("\t", depth) .. key .. " = " .. tostring(v) .. " {\n"
 					table.insert(stack, node)
 					table.insert(stack, v)
 					cache[node] = cur_index + 1

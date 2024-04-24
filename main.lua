@@ -2,7 +2,9 @@
 
 package.path = package.path
 	.. ";/home/nathan/Documents/code/AutoLuaAPI/?.lua;/home/nathan/Documents/code/noitadata/?.lua"
+local _print = print
 require("out")
+print = _print
 local socket = require("socket")
 local frame = math.floor(socket.gettime() * 1000) % 2 ^ 16
 function Random(a, b)
@@ -65,8 +67,23 @@ local function dbg_wand()
 	dbg_cards(deck)
 end
 
-local calls = {}
-local cur_node = calls
+local calls = { "WAND", {} }
+local cur_node = calls[2]
+local cur_parent = calls
+local nodes_to_shot_ref = {}
+local shot_refs_to_nums = {}
+local lines_to_shot_nums = {}
+local cur_shot_num = 1
+_create_shot = create_shot
+function create_shot(...)
+	local uv = { _create_shot(...) }
+	local v = uv[1]
+	nodes_to_shot_ref[cur_parent] = v
+	shot_refs_to_nums[v] = cur_shot_num
+	cur_shot_num = cur_shot_num + 1
+	return unpack(uv)
+end
+
 local counts = {}
 local id = 0
 local ty_map = { WAND = ACTION_TYPE_DRAW_MANY }
@@ -97,6 +114,7 @@ for _, v in ipairs(actions) do
 		local new_node = { v.id, {} }
 		counts[v.id] = (counts[v.id] or 0) + 1
 		cur_node = new_node[2]
+		cur_parent = new_node
 		table.insert(old_node, new_node)
 		local cur_id = id
 		id = id + 1
@@ -161,10 +179,11 @@ if #arg > 0 then
 	end
 else
 	colours = true
-	easy_add("DIVIDE_4")
 	easy_add("ADD_TRIGGER")
+	easy_add("LIGHT_BULLET")
 	easy_add("HOMING")
 	easy_add("BLOOD_MAGIC")
+	easy_add("LIGHT_BULLET")
 end
 _start_shot(10000000)
 _draw_actions_for_shot(true)
@@ -246,7 +265,6 @@ end
 
 -- print_table(flatten(normalise(t)))
 
-calls = { "WAND", calls }
 do
 	-- return
 end
@@ -305,6 +323,9 @@ local function post_multiply()
 		if bars[bar_idx][4] ~= 1 then
 			out_sp[k] = out_sp[k] .. extra
 		end
+		if lines_to_shot_nums[k] then
+			out_sp[k] = out_sp[k] .. " @ " .. lines_to_shot_nums[k]
+		end
 	end
 	out = table.concat(out_sp, "\n")
 end
@@ -327,6 +348,12 @@ local function handle(node, prefix, no_extra, indent_level)
 			27
 		) .. "[30m") or "")) or "")]]
 		.. "\n"
+	print(node, node[1])
+	if nodes_to_shot_ref[node] then
+		print("!!")
+		local _, c = out:gsub("\n", "\n")
+		lines_to_shot_nums[c] = shot_refs_to_nums[nodes_to_shot_ref[node]]
+	end
 	if bars[#bars][3] <= indent_level and bars[#bars][4] == node[3] then
 		bars[#bars][2] = bars[#bars][2] + 1
 	else
@@ -340,6 +367,7 @@ local function handle(node, prefix, no_extra, indent_level)
 		handle(v, prefix .. "#", dont, indent_level + 1)
 	end
 end
+print_table(nodes_to_shot_ref)
 pre_multiply(calls, 1)
 handle(calls, "")
 post_multiply()
