@@ -226,7 +226,7 @@ local function flatten(node)
 		local cur = make_text(v)
 		if last == cur and cur ~= false then
 			cur_c = cur_c + 1
-			i = i + 1
+			table.remove(node[2], i)
 		else
 			last = cur
 			if i ~= 1 then

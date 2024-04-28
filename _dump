@@ -12,76 +12,13 @@ LIGHT_BULLET
 LIGHT_BULLET
 {
 	[1] = 'WAND',
-	[2] = table: 0x58a54478a7f0 {
-		[1] = table: 0x58a544834530 {
+	[2] = table: 0x5c17f06ef970 {
+		[1] = table: 0x5c17f079a820 {
 			[1] = 'DIVIDE_10',
-			[2] = table: 0x58a544834580 {
-				[1] = table: 0x58a544836ed0 {
+			[2] = table: 0x5c17f079a870 {
+				[1] = table: 0x5c17f079d1c0 {
 					[1] = 'LIGHT_BULLET',
-					[2] = table: 0x58a544836f50 {
-
-					},
-					[3] = 1
-				},
-				[2] = table: 0x58a544837050 {
-					[1] = 'LIGHT_BULLET',
-					[2] = table: 0x58a5448370a0 {
-
-					},
-					[3] = 1
-				},
-				[3] = table: 0x58a544837170 {
-					[1] = 'LIGHT_BULLET',
-					[2] = table: 0x58a5448371f0 {
-
-					},
-					[3] = 1
-				},
-				[4] = table: 0x58a5446a5480 {
-					[1] = 'LIGHT_BULLET',
-					[2] = table: 0x58a5446a54d0 {
-
-					},
-					[3] = 1
-				},
-				[5] = table: 0x58a5446a5570 {
-					[1] = 'LIGHT_BULLET',
-					[2] = table: 0x58a5446a55f0 {
-
-					},
-					[3] = 1
-				},
-				[6] = table: 0x58a5446a56d0 {
-					[1] = 'LIGHT_BULLET',
-					[2] = table: 0x58a5446a5750 {
-
-					},
-					[3] = 1
-				},
-				[7] = table: 0x58a5446a57f0 {
-					[1] = 'LIGHT_BULLET',
-					[2] = table: 0x58a5446a5870 {
-
-					},
-					[3] = 1
-				},
-				[8] = table: 0x58a5446a5910 {
-					[1] = 'LIGHT_BULLET',
-					[2] = table: 0x58a5446a5990 {
-
-					},
-					[3] = 1
-				},
-				[9] = table: 0x58a5446a5a30 {
-					[1] = 'LIGHT_BULLET',
-					[2] = table: 0x58a5446a5ab0 {
-
-					},
-					[3] = 1
-				},
-				[10] = table: 0x58a5446a5640 {
-					[1] = 'LIGHT_BULLET',
-					[2] = table: 0x58a54483a290 {
+					[2] = table: 0x5c17f079d240 {
 
 					},
 					[3] = 10
@@ -94,15 +31,6 @@ LIGHT_BULLET
 }
 WAND @ 1
 └DIVIDE_10
- ├LIGHT_BULLET
- ├LIGHT_BULLET
- ├LIGHT_BULLET
- ├LIGHT_BULLET
- ├LIGHT_BULLET
- ├LIGHT_BULLET
- ├LIGHT_BULLET
- ├LIGHT_BULLET
- ├LIGHT_BULLET
  └LIGHT_BULLET ] 10
 ┌──────────────┬────┐
 │ LIGHT_BULLET │ 10 │
