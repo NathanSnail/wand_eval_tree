@@ -184,30 +184,49 @@ else
 	easy_add("HOMING")
 	easy_add("BLOOD_MAGIC")
 	easy_add("LIGHT_BULLET")
+	easy_add("ADD_TRIGGER")
+	easy_add("LIGHT_BULLET")
+	easy_add("HOMING")
+	easy_add("BLOOD_MAGIC")
+	easy_add("LIGHT_BULLET")
+	easy_add("ADD_TRIGGER")
+	easy_add("LIGHT_BULLET")
+	easy_add("HOMING")
+	easy_add("BLOOD_MAGIC")
+	easy_add("LIGHT_BULLET")
 end
 _start_shot(10000000)
 _draw_actions_for_shot(true)
 --print_table(calls)
 
 local function make_text(node)
-	local build = (node[3] or 1) .. node[1] .. "["
+	if nodes_to_shot_ref[node] then
+		return false
+	end
+	local build = (node[3] or 1) .. " " .. node[1] .. " ["
 	for _, v in ipairs(node[2]) do
-		build = build .. make_text(v)
+		local res = make_text(v)
+		if res == false then
+			return false
+		end
+		build = build .. res
 	end
 	return build .. "]"
 end
 
 local function flatten(node)
+	print(node[1])
 	node[3] = 1
 	local i = 1
+	---@type string | false
 	local last = ""
 	local cur_c = 1
 	while i <= #node[2] do
 		local v = flatten(node[2][i])
 		local cur = make_text(v)
-		if last == cur then
+		if last == cur and cur ~= false then
 			cur_c = cur_c + 1
-			table.remove(node[2], i)
+			i = i + 1
 		else
 			last = cur
 			if i ~= 1 then
@@ -270,6 +289,7 @@ do
 end
 --print_table(calls)
 flatten(calls)
+print_table(calls)
 local out = ""
 
 local function pre_multiply(node, val)
@@ -324,7 +344,7 @@ local function post_multiply()
 			out_sp[k] = out_sp[k] .. extra
 		end
 		if lines_to_shot_nums[k] then
-			out_sp[k] = out_sp[k] .. " @ " .. lines_to_shot_nums[k]
+			out_sp[k] = out_sp[k] .. " @ " .. table.concat(lines_to_shot_nums[k], ", ")
 		end
 	end
 	out = table.concat(out_sp, "\n")
@@ -348,11 +368,16 @@ local function handle(node, prefix, no_extra, indent_level)
 			27
 		) .. "[30m") or "")) or "")]]
 		.. "\n"
-	print(node, node[1])
 	if nodes_to_shot_ref[node] then
-		print("!!")
 		local _, c = out:gsub("\n", "\n")
-		lines_to_shot_nums[c] = shot_refs_to_nums[nodes_to_shot_ref[node]]
+		local cur_line = {}
+		if nodes_to_shot_ref[node] then
+			cur_line[1] = nodes_to_shot_ref[node]
+		end
+		for k, v in ipairs(cur_line) do
+			cur_line[k] = shot_refs_to_nums[v]
+		end
+		lines_to_shot_nums[c] = cur_line
 	end
 	if bars[#bars][3] <= indent_level and bars[#bars][4] == node[3] then
 		bars[#bars][2] = bars[#bars][2] + 1
@@ -367,12 +392,14 @@ local function handle(node, prefix, no_extra, indent_level)
 		handle(v, prefix .. "#", dont, indent_level + 1)
 	end
 end
-print_table(nodes_to_shot_ref)
+
+--print_table(nodes_to_shot_ref)
 pre_multiply(calls, 1)
 handle(calls, "")
 post_multiply()
 out = (colours and "```ansi\n" or "") .. out
 print(out)
+
 local count_pairs = {}
 local big_length = 0
 local big_length2 = 0
@@ -410,4 +437,16 @@ count_message = count_message
 	.. ("─"):rep(big_length2 + 2)
 	.. "┘\n"
 print(count_message)
+
+local function gather_state_modifications(state) end
+local shot_nums_to_refs = {}
+
+for shot, num in pairs(shot_refs_to_nums) do
+	shot_nums_to_refs[num] = shot, num
+end
+for num, shot in ipairs(shot_nums_to_refs) do
+	local shot_table = "Shot state " .. num .. ":\n"
+
+	print(shot_table)
+end
 print("```")
