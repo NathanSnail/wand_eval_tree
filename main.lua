@@ -215,7 +215,6 @@ local function make_text(node)
 end
 
 local function flatten(node)
-	print(node[1])
 	node[3] = 1
 	local i = 1
 	---@type string | false
@@ -289,7 +288,6 @@ do
 end
 --print_table(calls)
 flatten(calls)
-print_table(calls)
 local out = ""
 
 local function pre_multiply(node, val)
@@ -438,7 +436,31 @@ count_message = count_message
 	.. "┘\n"
 print(count_message)
 
-local function gather_state_modifications(state) end
+local function gather_state_modifications(state)
+	local default = require("data")
+	local diff = {}
+	for k, v in pairs(state) do
+		if default[k] ~= v then
+			diff[k] = v
+		end
+	end
+	diff.action_name = nil
+	diff.action_id = nil
+	diff.action_mana_drain = nil
+	diff.reload_time = nil
+	diff.extra_entities = diff.extra_entities or ""
+	---@type string[]
+	local mods = {}
+	for mod in diff.extra_entities:gmatch("([^,]+)") do
+		table.insert(mods, mod)
+	end
+	for k, mod in ipairs(mods) do
+		local suffix = mod:gmatch("/[^/]+%.xml")()
+		mods[k] = suffix:sub(2, suffix:len() - 4)
+	end
+	diff.extra_entities = table.concat(mods, ", ")
+	return diff
+end
 local shot_nums_to_refs = {}
 
 for shot, num in pairs(shot_refs_to_nums) do
@@ -446,6 +468,28 @@ for shot, num in pairs(shot_refs_to_nums) do
 end
 for num, shot in ipairs(shot_nums_to_refs) do
 	local shot_table = "Shot state " .. num .. ":\n"
+	local diff = gather_state_modifications(shot.state)
+	local name_width = 0
+	local value_width = 0
+	for k, v in pairs(diff) do
+		name_width = math.max(name_width, k:len())
+		value_width = math.max(value_width, tostring(v):len())
+	end
+	name_width = name_width + 2
+	value_width = value_width + 2
+	shot_table = shot_table .. "┌" .. ("─"):rep(name_width) .. "┬" .. ("─"):rep(value_width) .. "┐\n"
+	for k, v in pairs(diff) do
+		local v_str = tostring(v)
+		shot_table = shot_table
+			.. "│ "
+			.. k
+			.. (" "):rep(name_width - k:len() - 1)
+			.. "│ "
+			.. v_str
+			.. (" "):rep(value_width - v_str:len() - 1)
+			.. "│\n"
+	end
+	shot_table = shot_table .. "└" .. ("─"):rep(name_width) .. "┴" .. ("─"):rep(value_width) .. "┘\n"
 
 	print(shot_table)
 end
