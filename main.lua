@@ -342,7 +342,11 @@ local function post_multiply()
 			out_sp[k] = out_sp[k] .. extra
 		end
 		if lines_to_shot_nums[k] then
-			out_sp[k] = out_sp[k] .. " @ " .. table.concat(lines_to_shot_nums[k], ", ")
+			out_sp[k] = out_sp[k]
+				.. " @ "
+				.. (colours and (string.char(27) .. "[0m") or "")
+				.. table.concat(lines_to_shot_nums[k], ", ")
+				.. (colours and (string.char(27) .. "[30m") or "")
 		end
 	end
 	out = table.concat(out_sp, "\n")
@@ -436,7 +440,7 @@ count_message = count_message
 	.. "┘\n"
 print(count_message)
 
-local function gather_state_modifications(state)
+local function gather_state_modifications(state, first)
 	local default = require("data")
 	local diff = {}
 	for k, v in pairs(state) do
@@ -447,7 +451,11 @@ local function gather_state_modifications(state)
 	diff.action_name = nil
 	diff.action_id = nil
 	diff.action_mana_drain = nil
+	diff.action_draw_many_count = nil
 	diff.reload_time = nil
+	if not first then
+		diff.fire_rate_wait = nil
+	end
 	diff.extra_entities = diff.extra_entities or ""
 	---@type string[]
 	local mods = {}
@@ -458,7 +466,18 @@ local function gather_state_modifications(state)
 		local suffix = mod:gmatch("/[^/]+%.xml")()
 		mods[k] = suffix:sub(2, suffix:len() - 4)
 	end
-	diff.extra_entities = table.concat(mods, ", ")
+	local counted = {}
+	for _, v in ipairs(mods) do
+		counted[v] = (counted[v] or 0) + 1
+	end
+	local numeric = {}
+	for k, v in pairs(counted) do
+		table.insert(numeric, k .. (v == 1 and "" or (" ×" .. tostring(v))))
+	end
+	diff.extra_entities = table.concat(numeric, ", ")
+	if diff.extra_entities == "" then
+		diff.extra_entities = nil
+	end
 	return diff
 end
 local shot_nums_to_refs = {}
@@ -467,8 +486,8 @@ for shot, num in pairs(shot_refs_to_nums) do
 	shot_nums_to_refs[num] = shot, num
 end
 for num, shot in ipairs(shot_nums_to_refs) do
-	local shot_table = "Shot state " .. num .. ":\n"
-	local diff = gather_state_modifications(shot.state)
+	local shot_table = (colours and (string.char(27) .. "[0m") or "") .. "Shot state " .. num .. ":\n"
+	local diff = gather_state_modifications(shot.state, num == 1)
 	local name_width = 0
 	local value_width = 0
 	for k, v in pairs(diff) do
@@ -477,16 +496,26 @@ for num, shot in ipairs(shot_nums_to_refs) do
 	end
 	name_width = name_width + 2
 	value_width = value_width + 2
-	shot_table = shot_table .. "┌" .. ("─"):rep(name_width) .. "┬" .. ("─"):rep(value_width) .. "┐\n"
+	shot_table = shot_table
+		.. (colours and (string.char(27) .. "[30m") or "")
+		.. "┌"
+		.. ("─"):rep(name_width)
+		.. "┬"
+		.. ("─"):rep(value_width)
+		.. "┐\n"
 	for k, v in pairs(diff) do
 		local v_str = tostring(v)
 		shot_table = shot_table
 			.. "│ "
+			.. (colours and (string.char(27) .. "[0m") or "")
 			.. k
+			.. (colours and (string.char(27) .. "[30m") or "")
 			.. (" "):rep(name_width - k:len() - 1)
 			.. "│ "
+			.. (colours and (string.char(27) .. "[0m") or "")
 			.. v_str
-			.. (" "):rep(value_width - v_str:len() - 1)
+			.. (colours and (string.char(27) .. "[30m") or "")
+			.. (" "):rep(value_width - len(v_str) - 1)
 			.. "│\n"
 	end
 	shot_table = shot_table .. "└" .. ("─"):rep(name_width) .. "┴" .. ("─"):rep(value_width) .. "┘\n"
