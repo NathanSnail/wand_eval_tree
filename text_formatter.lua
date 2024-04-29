@@ -24,12 +24,15 @@ function M.id_text(id)
 	if not M.colours then
 		return id
 	end
-	return string.char(27) .. "[" .. col_map[M.ty_map[id]] .. "m" .. id .. string.char(27) .. "[30m"
+	return col_map[M.ty_map[id]] .. id .. string.char(27) .. "[30m"
 end
 
-function M.colour_compare(a, b, engine_data)
-	if col_map[engine_data.ty_map[a[1]]] ~= col_map[engine_data.ty_map[b[1]]] then
-		return col_map[engine_data.ty_map[a[1]]] > col_map[engine_data.ty_map[b[1]]]
+---@param a node
+---@param b node
+---@return boolean?
+function M.colour_compare(a, b)
+	if col_map[M.ty_map[a.name]] ~= col_map[M.ty_map[b.name]] then
+		return col_map[M.ty_map[a.name]] > col_map[M.ty_map[b.name]]
 	end
 	return nil
 end

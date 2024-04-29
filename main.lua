@@ -48,4 +48,4 @@ else
 end
 
 fake_engine.evaluate(26, false, 0, 26, 1000000)
-renderer.render(fake_engine.calls, fake_engine, text_formatter)
+print(renderer.render(fake_engine.calls, fake_engine, text_formatter))
