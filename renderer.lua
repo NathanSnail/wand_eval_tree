@@ -2,7 +2,7 @@
 local M = {}
 
 ---@param node node
----@param engine_data engine_data
+---@param engine_data fake_engine
 ---@return boolean
 local function make_text(node, engine_data)
 	if engine_data.nodes_to_shot_ref[node] then
@@ -10,7 +10,7 @@ local function make_text(node, engine_data)
 	end
 	local build = (node.count or 1) .. " " .. node.name .. " ["
 	for _, v in ipairs(node.children) do
-		local res = make_text(v)
+		local res = make_text(v, engine_data)
 		if res == false then
 			return false
 		end
@@ -20,8 +20,7 @@ local function make_text(node, engine_data)
 end
 
 ---@param node node
----@param engine_data engine_data
----@return node
+---@param engine_data fake_engine
 local function flatten(node, engine_data)
 	node.count = 1
 	local i = 1
@@ -29,7 +28,8 @@ local function flatten(node, engine_data)
 	local last = ""
 	local cur_c = 1
 	while i <= #node.children do
-		local v = flatten(node.children[i], engine_data)
+		local v = node.children[i]
+		flatten(v, engine_data)
 		local cur = make_text(v, engine_data)
 		if last == cur and cur ~= false then
 			cur_c = cur_c + 1
@@ -44,10 +44,9 @@ local function flatten(node, engine_data)
 		end
 	end
 	if i ~= 1 then
-		node[2][i - 1][3] = cur_c
+		node.children[i - 1].count = cur_c
 		cur_c = 1
 	end
-	return node
 end
 
 ---@param node node
@@ -80,15 +79,15 @@ end
 ---@field tree_semi_rendered string
 ---@field bars bar[]
 
----@param engine_data engine_data
+---@param incomplete_render incomplete_render
+---@param engine_data fake_engine
 ---@param text_formatter text_formatter
 ---@return incomplete_render
-local function post_multiply(engine_data, text_formatter)
-	---@type bar[]
-	local bars = { { start = 1, finnish = 0, right_shift = 0, value = 1 } }
+local function post_multiply(incomplete_render, engine_data, text_formatter)
+	local bars = incomplete_render.bars
 	local bar_idx = 1
 	local out_sp = {}
-	for str in out:gmatch("([^\n]+)") do
+	for str in incomplete_render.tree_semi_rendered:gmatch("([^\n]+)") do
 		table.insert(out_sp, str)
 	end
 	for k, str in ipairs(out_sp) do
@@ -124,7 +123,7 @@ local function post_multiply(engine_data, text_formatter)
 			out_sp[line_num] = out_sp[line_num]
 				.. " @ "
 				.. text_formatter.colour_codes.RESET
-				.. table.concat(engine_data.lines_to_shot_nums[line_num], ", ")
+				.. engine_data.lines_to_shot_nums[line_num]
 				.. text_formatter.colour_codes.GREY
 		end
 	end
@@ -136,7 +135,7 @@ end
 ---@param prefix string
 ---@param no_extra boolean
 ---@param indent_level integer
----@param engine_data engine_data
+---@param engine_data fake_engine
 ---@param text_formatter text_formatter
 ---@param incomplete_render incomplete_render
 local function handle(node, prefix, no_extra, indent_level, engine_data, text_formatter, incomplete_render)
@@ -159,13 +158,7 @@ local function handle(node, prefix, no_extra, indent_level, engine_data, text_fo
 		.. "\n"
 	if engine_data.nodes_to_shot_ref[node] then
 		local _, c = incomplete_render.tree_semi_rendered:gsub("\n", "\n")
-		local cur_line = {}
-		if engine_data.nodes_to_shot_ref[node] then
-			cur_line[1] = engine_data.nodes_to_shot_ref[node]
-		end
-		for k, v in ipairs(cur_line) do
-			cur_line[k] = engine_data.shot_refs_to_nums[v]
-		end
+		local cur_line = engine_data.shot_refs_to_nums[engine_data.nodes_to_shot_ref[node]]
 		engine_data.lines_to_shot_nums[c] = cur_line
 	end
 	local last_bar = incomplete_render.bars[#incomplete_render.bars]
@@ -184,17 +177,29 @@ local function handle(node, prefix, no_extra, indent_level, engine_data, text_fo
 	end
 end
 
-function M.render(calls, colours)
-	flatten(calls)
+---@param calls node
+---@param engine_data fake_engine
+---@param text_formatter text_formatter
+---@return string
+function M.render(calls, engine_data, text_formatter)
+	flatten(calls, engine_data)
 	pre_multiply(calls, 1)
-	handle(calls, "")
-	post_multiply()
-	out = (colours and "```ansi\n" or "") .. out
-	return out
+	local render = { tree_semi_rendered = "", bars = { { start = 1, finnish = 0, right_shift = 0, value = 1 } } }
+	handle(calls, "", false, 0, engine_data, text_formatter, render)
+	render = post_multiply(render, engine_data, text_formatter)
+	render.tree_semi_rendered = render.tree_semi_rendered
+		.. M.render_counts(engine_data, text_formatter)
+		.. M.render_shot_states(engine_data)
+
+	render.tree_semi_rendered = (text_formatter.colours and "```ansi\n" or "")
+		.. render.tree_semi_rendered
+		.. (text_formatter.colours and "\n```" or "")
+	return render.tree_semi_rendered
 end
 
----@param engine_data engine_data
+---@param engine_data fake_engine
 ---@param text_formatter text_formatter
+---@return string
 function M.render_counts(engine_data, text_formatter)
 	local count_pairs = {}
 	local big_length = 0
@@ -233,15 +238,18 @@ function M.render_counts(engine_data, text_formatter)
 		.. "┴"
 		.. ("─"):rep(big_length2 + 2)
 		.. "┘\n"
-	print(count_message)
+	return count_message
 end
 
+---@param state {string: integer}
+---@param first boolean
+---@return {string: string}
 local function gather_state_modifications(state, first)
 	local default = require("data")
 	local diff = {}
 	for k, v in pairs(state) do
 		if default[k] ~= v then
-			diff[k] = v
+			diff[k] = tostring(v)
 		end
 	end
 	diff.action_name = nil
@@ -277,7 +285,7 @@ local function gather_state_modifications(state, first)
 	return diff
 end
 
----@param engine_data engine_data
+---@param engine_data fake_engine
 ---@return string
 function M.render_shot_states(engine_data)
 	local shot_nums_to_refs = {}
