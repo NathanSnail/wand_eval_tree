@@ -2,6 +2,7 @@ local fake_engine = require("fake_engine")
 ---@type renderer
 local renderer = require("renderer")
 local text_formatter = require("text_formatter")
+print_table = require("print")
 fake_engine.initialise_engine(text_formatter)
 
 if #arg > 0 then

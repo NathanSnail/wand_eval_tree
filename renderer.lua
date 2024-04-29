@@ -71,7 +71,7 @@ end
 
 ---@class (exact) bar
 ---@field start integer
----@field finnish integer
+---@field finish integer
 ---@field right_shift integer
 ---@field value integer
 
@@ -92,7 +92,7 @@ local function post_multiply(incomplete_render, engine_data, text_formatter)
 	end
 	for k, str in ipairs(out_sp) do
 		local colourless = str:gsub(string.char(27) .. ".-m", "")
-		if bars[bar_idx].finnish < k then
+		if bars[bar_idx].finish < k then
 			bar_idx = bar_idx + 1
 		end
 		bars[bar_idx].right_shift = math.max(bars[bar_idx].right_shift, len(colourless))
@@ -100,23 +100,25 @@ local function post_multiply(incomplete_render, engine_data, text_formatter)
 	bar_idx = 1
 	for line_num, line_text in ipairs(out_sp) do
 		local colourless = line_text:gsub(string.char(27) .. ".-m", "")
-		if bars[bar_idx].finnish < line_num then
+		if bars[bar_idx].finish < line_num then
 			bar_idx = bar_idx + 1
 		end
-		local extra = (" "):rep(bars[bar_idx].right_shift - len(colourless) + 1)
-		if bars[bar_idx].start == bars[bar_idx].finnish then
+		local cur_bar = bars[bar_idx]
+		--print_table(cur_bar)
+		local extra = (" "):rep(cur_bar.right_shift - len(colourless) + 1)
+		if cur_bar.start == cur_bar.finish then
 			extra = extra .. "]"
-		elseif bars[bar_idx].start == line_num then
+		elseif cur_bar.start == line_num then
 			extra = extra .. "┐"
-		elseif bars[bar_idx].finnish == line_num then
+		elseif cur_bar.finish == line_num then
 			extra = extra .. "┘"
 		else
 			extra = extra .. "│"
 		end
-		if math.floor((bars[bar_idx].start + bars[bar_idx].finnish) / 2) == line_num then
-			extra = extra .. " " .. text_formatter.colour_codes.GREY .. bars[bar_idx].value
+		if math.floor((cur_bar.start + cur_bar.finish) / 2) == line_num then
+			extra = extra .. " " .. text_formatter.colour_codes.GREY .. cur_bar.value
 		end
-		if bars[bar_idx].value ~= 1 then
+		if cur_bar.value ~= 1 then
 			out_sp[line_num] = out_sp[line_num] .. extra
 		end
 		if engine_data.lines_to_shot_nums[line_num] then
@@ -152,9 +154,6 @@ local function handle(node, prefix, no_extra, indent_level, engine_data, text_fo
 	incomplete_render.tree_semi_rendered = incomplete_render.tree_semi_rendered
 		.. t_prefix
 		.. text_formatter.id_text(node.name)
-		--[[.. (node[3] ~= 1 and ((colours and (string.char(27) .. "[37m") or "") .. " (" .. node[3] .. ")" .. (colours and (string.char(
-			27
-		) .. "[30m") or "")) or "")]]
 		.. "\n"
 	if engine_data.nodes_to_shot_ref[node] then
 		local _, c = incomplete_render.tree_semi_rendered:gsub("\n", "\n")
@@ -163,9 +162,14 @@ local function handle(node, prefix, no_extra, indent_level, engine_data, text_fo
 	end
 	local last_bar = incomplete_render.bars[#incomplete_render.bars]
 	if last_bar.right_shift <= indent_level and last_bar.value == node.count then
-		last_bar.finnish = last_bar.finnish + 1
+		last_bar.finish = last_bar.finish + 1
 	else
-		local new_bar = { start = last_bar.start + 1, last_bar.finnish + 1, indent_level, node[3] }
+		local new_bar = {
+			start = last_bar.finish + 1,
+			finish = last_bar.finish + 1,
+			right_shift = indent_level,
+			value = node.count,
+		}
 		table.insert(incomplete_render.bars, new_bar)
 	end
 	for k, v in ipairs(node.children) do
@@ -184,13 +188,13 @@ end
 function M.render(calls, engine_data, text_formatter)
 	flatten(calls, engine_data)
 	pre_multiply(calls, 1)
-	local render = { tree_semi_rendered = "", bars = { { start = 1, finnish = 0, right_shift = 0, value = 1 } } }
+	local render = { tree_semi_rendered = "", bars = { { start = 1, finish = 0, right_shift = 0, value = 1 } } }
 	handle(calls, "", false, 0, engine_data, text_formatter, render)
 	render = post_multiply(render, engine_data, text_formatter)
 	render.tree_semi_rendered = render.tree_semi_rendered
 		.. "\n"
 		.. M.render_counts(engine_data, text_formatter)
-		.. M.render_shot_states(engine_data)
+		.. M.render_shot_states(engine_data, text_formatter)
 
 	render.tree_semi_rendered = (text_formatter.colours and "```ansi\n" or "")
 		.. render.tree_semi_rendered
@@ -257,6 +261,7 @@ local function gather_state_modifications(state, first)
 	diff.action_id = nil
 	diff.action_mana_drain = nil
 	diff.action_draw_many_count = nil
+	diff.action_type = nil
 	diff.reload_time = nil
 	if not first then
 		diff.fire_rate_wait = nil
@@ -287,8 +292,9 @@ local function gather_state_modifications(state, first)
 end
 
 ---@param engine_data fake_engine
+---@param text_formatter text_formatter
 ---@return string
-function M.render_shot_states(engine_data)
+function M.render_shot_states(engine_data, text_formatter)
 	local shot_nums_to_refs = {}
 
 	for shot, num in pairs(engine_data.shot_refs_to_nums) do
@@ -296,7 +302,10 @@ function M.render_shot_states(engine_data)
 	end
 	local out = ""
 	for num, shot in ipairs(shot_nums_to_refs) do
-		local shot_table = (colours and (string.char(27) .. "[0m") or "") .. "Shot state " .. num .. ":\n"
+		local shot_table = (text_formatter.colours and (string.char(27) .. "[0m") or "")
+			.. "Shot state "
+			.. num
+			.. ":\n"
 		local diff = gather_state_modifications(shot.state, num == 1)
 		local name_width = 0
 		local value_width = 0
@@ -307,7 +316,7 @@ function M.render_shot_states(engine_data)
 		name_width = name_width + 2
 		value_width = value_width + 2
 		shot_table = shot_table
-			.. (colours and (string.char(27) .. "[30m") or "")
+			.. (text_formatter.colours and (string.char(27) .. "[30m") or "")
 			.. "┌"
 			.. ("─"):rep(name_width)
 			.. "┬"
@@ -317,14 +326,14 @@ function M.render_shot_states(engine_data)
 			local v_str = tostring(v)
 			shot_table = shot_table
 				.. "│ "
-				.. (colours and (string.char(27) .. "[0m") or "")
+				.. (text_formatter.colours and (string.char(27) .. "[0m") or "")
 				.. k
-				.. (colours and (string.char(27) .. "[30m") or "")
+				.. (text_formatter.colours and (string.char(27) .. "[30m") or "")
 				.. (" "):rep(name_width - k:len() - 1)
 				.. "│ "
-				.. (colours and (string.char(27) .. "[0m") or "")
+				.. (text_formatter.colours and (string.char(27) .. "[0m") or "")
 				.. v_str
-				.. (colours and (string.char(27) .. "[30m") or "")
+				.. (text_formatter.colours and (string.char(27) .. "[30m") or "")
 				.. (" "):rep(value_width - len(v_str) - 1)
 				.. "│\n"
 		end
