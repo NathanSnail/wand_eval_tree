@@ -7,6 +7,7 @@
 local M = {}
 package.path = package.path
 	.. ";/home/nathan/Documents/code/AutoLuaAPI/?.lua;/home/nathan/Documents/code/noitadata/?.lua"
+require("data/scripts/gun/gun_enums")
 ---@param text_formatter text_formatter
 function M.initialise_engine(text_formatter)
 	local _print = print
@@ -86,9 +87,9 @@ function M.initialise_engine(text_formatter)
 		v.action = function(...)
 			--print(v.id, "happens")
 			local old_node = M.cur_node
-			local new_node = { v.id, {} }
+			local new_node = { name = v.id, children = {} }
 			M.counts[v.id] = (M.counts[v.id] or 0) + 1
-			M.cur_node = new_node.name
+			M.cur_node = new_node.children
 			M.cur_parent = new_node
 			table.insert(old_node, new_node)
 			local res = { _a(...) }
@@ -99,7 +100,7 @@ function M.initialise_engine(text_formatter)
 end
 function M.evaluate(actions_per_round, shuffle_deck_when_empty, reload_time, deck_capacity, mana)
 	M.calls = { name = "WAND", children = {} }
-	M.cur_node = M.calls.name
+	M.cur_node = M.calls.children
 	M.cur_parent = M.calls
 	M.nodes_to_shot_ref = {}
 	M.shot_refs_to_nums = {}

@@ -103,7 +103,7 @@ local function post_multiply(incomplete_render, engine_data, text_formatter)
 		if bars[bar_idx].finnish < line_num then
 			bar_idx = bar_idx + 1
 		end
-		local extra = (" "):rep(bars[bar_idx][3] - len(colourless) + 1)
+		local extra = (" "):rep(bars[bar_idx].right_shift - len(colourless) + 1)
 		if bars[bar_idx].start == bars[bar_idx].finnish then
 			extra = extra .. "]"
 		elseif bars[bar_idx].start == line_num then
@@ -151,7 +151,7 @@ local function handle(node, prefix, no_extra, indent_level, engine_data, text_fo
 	end
 	incomplete_render.tree_semi_rendered = incomplete_render.tree_semi_rendered
 		.. t_prefix
-		.. text_formatter.id_text(node[1])
+		.. text_formatter.id_text(node.name)
 		--[[.. (node[3] ~= 1 and ((colours and (string.char(27) .. "[37m") or "") .. " (" .. node[3] .. ")" .. (colours and (string.char(
 			27
 		) .. "[30m") or "")) or "")]]
@@ -162,7 +162,7 @@ local function handle(node, prefix, no_extra, indent_level, engine_data, text_fo
 		engine_data.lines_to_shot_nums[c] = cur_line
 	end
 	local last_bar = incomplete_render.bars[#incomplete_render.bars]
-	if last_bar.right_shift <= indent_level and last_bar.value == node[3] then
+	if last_bar.right_shift <= indent_level and last_bar.value == node.count then
 		last_bar.finnish = last_bar.finnish + 1
 	else
 		local new_bar = { start = last_bar.start + 1, last_bar.finnish + 1, indent_level, node[3] }
@@ -188,6 +188,7 @@ function M.render(calls, engine_data, text_formatter)
 	handle(calls, "", false, 0, engine_data, text_formatter, render)
 	render = post_multiply(render, engine_data, text_formatter)
 	render.tree_semi_rendered = render.tree_semi_rendered
+		.. "\n"
 		.. M.render_counts(engine_data, text_formatter)
 		.. M.render_shot_states(engine_data)
 
@@ -213,11 +214,11 @@ function M.render_counts(engine_data, text_formatter)
 		if a[3] ~= b[3] then
 			return a[3] > b[3]
 		end
-		local res = text_formatter.colour_compare(a, b)
+		local res = text_formatter.colour_compare(a[1], b[1])
 		if res ~= nil then
 			return res
 		end
-		return a[1] > b[1]
+		return a[1] > a[1]
 	end)
 	local count_message = "┌" .. ("─"):rep(big_length + 2) .. "┬" .. ("─"):rep(big_length2 + 2) .. "┐\n"
 	for _, v in ipairs(count_pairs) do
