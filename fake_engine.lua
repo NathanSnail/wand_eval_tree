@@ -6,12 +6,12 @@
 ---@class fake_engine
 local M = {}
 package.path = package.path
-	.. ";/home/nathan/Documents/code/AutoLuaAPI/?.lua;/home/nathan/Documents/code/noitadata/?.lua"
+	.. ";/home/nathan/Documents/code/noitadata/?.lua"
 require("data/scripts/gun/gun_enums")
 ---@param text_formatter text_formatter
 function M.initialise_engine(text_formatter)
 	local _print = print
-	require("out")
+	require("AutoLuaAPI.out")
 	print = _print
 	local socket = require("socket")
 	local frame = math.floor(socket.gettime() * 1000) % 2 ^ 16
