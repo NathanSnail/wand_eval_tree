@@ -116,7 +116,11 @@ local function post_multiply(incomplete_render, engine_data, text_formatter)
 			extra = extra .. "│"
 		end
 		if math.floor((cur_bar.start + cur_bar.finish) / 2) == line_num then
-			extra = extra .. " " .. text_formatter.colour_codes.GREY .. cur_bar.value
+			extra = extra
+				.. " "
+				.. text_formatter.colour_codes.RESET
+				.. cur_bar.value
+				.. text_formatter.colour_codes.GREY
 		end
 		if cur_bar.value ~= 1 then
 			out_sp[line_num] = out_sp[line_num] .. extra

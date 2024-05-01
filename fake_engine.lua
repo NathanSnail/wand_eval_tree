@@ -5,8 +5,7 @@
 
 ---@class fake_engine
 local M = {}
-package.path = package.path
-	.. ";/home/nathan/Documents/code/noitadata/?.lua"
+package.path = package.path .. ";/home/nathan/Documents/code/noitadata/?.lua"
 require("data/scripts/gun/gun_enums")
 ---@param text_formatter text_formatter
 function M.initialise_engine(text_formatter)
@@ -98,7 +97,9 @@ function M.initialise_engine(text_formatter)
 		end
 	end
 end
-function M.evaluate(actions_per_round, shuffle_deck_when_empty, reload_time, deck_capacity, mana)
+
+---@param options formatter_options
+function M.evaluate(options)
 	M.calls = { name = "WAND", children = {} }
 	M.cur_node = M.calls.children
 	M.cur_parent = M.calls
@@ -108,10 +109,11 @@ function M.evaluate(actions_per_round, shuffle_deck_when_empty, reload_time, dec
 	M.cur_shot_num = 1
 	M.counts = {}
 
-	ConfigGun_ReadToLua(actions_per_round, shuffle_deck_when_empty, reload_time, deck_capacity)
+	ConfigGun_ReadToLua(options.spells_per_cast, false, options.reload_time, 66)
 	_set_gun()
 	local data = require("data")
 	local arg_list = require("arg_list")
+	data.fire_rate_wait = options.cast_delay
 	local value = {}
 	for _, v in ipairs(arg_list) do
 		table.insert(value, data[v])
@@ -120,19 +122,25 @@ function M.evaluate(actions_per_round, shuffle_deck_when_empty, reload_time, dec
 	ConfigGunActionInfo_ReadToLua(unpack(value))
 	_set_gun2()
 
-	_start_shot(mana)
+	_start_shot(options.mana)
 	_draw_actions_for_shot(true)
 end
 
-function M.easy_add(id, charges, zerod)
+function M.easy_add(id, charges, drained, unlimited_spells)
 	for _, v in ipairs(actions) do
 		if v.id == id then
-			_add_card_to_deck(
-				id,
-				0,
-				(not v.never_unlimited and -1) or charges or (zerod and 0 or v.max_uses) or -1,
-				true
-			)
+			if v.max_uses == nil then
+				charges = -1
+			elseif unlimited_spells and not v.never_unlimited then
+				charges = -1
+			elseif charges ~= nil then
+				charges = charges
+			elseif drained then
+				charges = 0
+			else
+				charges = v.max_uses
+			end
+			_add_card_to_deck(id, 0, charges, true)
 			return
 		end
 	end
