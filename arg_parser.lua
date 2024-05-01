@@ -61,7 +61,7 @@ local function numeric(name)
 	end
 end
 
-local function single_identity(x)
+local function identity(x)
 	return x
 end
 
@@ -88,13 +88,13 @@ end
 ---@type table<string, fun(...: any): any>
 local arg_fns = {
 	spells_per_cast = numeric("spells_per_cast"),
-	wand_file = single_identity,
+	wand_file = identity,
 	mana = numeric("mana"),
 	reload_time = numeric("reload_time"),
 	cast_delay = numeric("cast_delay"),
 	number_of_casts = numeric("number_of_casts"),
 	always_casts = spell_proccess,
-	mod_list = single_identity,
+	mod_list = identity,
 	spells = spell_proccess,
 }
 
@@ -136,7 +136,7 @@ end
 ---@class arg_parser
 local M = {}
 
----@class formatter_options
+---@class (exact) formatter_options
 ---@field ansi boolean
 ---@field drained boolean
 ---@field every_other boolean
@@ -155,7 +155,7 @@ local M = {}
 ---@field spells string[]
 
 ---@param args string[]
----@return formatter_options?
+---@return formatter_options
 function M.parse(args)
 	local cur_options = {}
 	for k, v in pairs(defaults) do
@@ -163,7 +163,7 @@ function M.parse(args)
 	end
 
 	if #args == 0 then
-		return nil
+		return defaults
 	end
 	local ptr = 1
 	local contains_opts = false
@@ -171,7 +171,7 @@ function M.parse(args)
 		contains_opts = contains_opts or v:sub(1, 1) == "-"
 	end
 	if not contains_opts then
-		cur_options.spells = args
+		cur_options.spells = apply_option("--spells", args)
 		return cur_options
 	end
 	while ptr <= #args do
