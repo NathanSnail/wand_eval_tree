@@ -188,17 +188,20 @@ end
 ---@param calls node
 ---@param engine_data fake_engine
 ---@param text_formatter text_formatter
+---@param options formatter_options
 ---@return string
-function M.render(calls, engine_data, text_formatter)
+function M.render(calls, engine_data, text_formatter, options)
 	flatten(calls, engine_data)
 	pre_multiply(calls, 1)
 	local render = { tree_semi_rendered = "", bars = { { start = 1, finish = 0, right_shift = 0, value = 1 } } }
-	handle(calls, "", false, 0, engine_data, text_formatter, render)
-	render = post_multiply(render, engine_data, text_formatter)
+	if options.tree then
+		handle(calls, "", false, 0, engine_data, text_formatter, render)
+		render = post_multiply(render, engine_data, text_formatter)
+	end
 	render.tree_semi_rendered = render.tree_semi_rendered
 		.. "\n"
-		.. M.render_counts(engine_data, text_formatter)
-		.. M.render_shot_states(engine_data, text_formatter)
+		.. (options.counts and M.render_counts(engine_data, text_formatter) or "")
+		.. (options.states and M.render_shot_states(engine_data, text_formatter) or "")
 
 	render.tree_semi_rendered = (text_formatter.colours and "```ansi\n" or "")
 		.. render.tree_semi_rendered
@@ -306,10 +309,7 @@ function M.render_shot_states(engine_data, text_formatter)
 	end
 	local out = ""
 	for num, shot in ipairs(shot_nums_to_refs) do
-		local shot_table = (text_formatter.colours and (string.char(27) .. "[0m") or "")
-			.. "Shot state "
-			.. num
-			.. ":\n"
+		local shot_table = text_formatter.colour_codes.RESET .. "Shot state " .. num .. ":\n"
 		local diff = gather_state_modifications(shot.state, num == 1)
 		local name_width = 0
 		local value_width = 0
@@ -320,7 +320,7 @@ function M.render_shot_states(engine_data, text_formatter)
 		name_width = name_width + 2
 		value_width = value_width + 2
 		shot_table = shot_table
-			.. (text_formatter.colours and (string.char(27) .. "[30m") or "")
+			.. text_formatter.colour_codes.GREY
 			.. "┌"
 			.. ("─"):rep(name_width)
 			.. "┬"
@@ -330,14 +330,14 @@ function M.render_shot_states(engine_data, text_formatter)
 			local v_str = tostring(v)
 			shot_table = shot_table
 				.. "│ "
-				.. (text_formatter.colours and (string.char(27) .. "[0m") or "")
+				.. text_formatter.colour_codes.RESET
 				.. k
-				.. (text_formatter.colours and (string.char(27) .. "[30m") or "")
+				.. text_formatter.colour_codes.GREY
 				.. (" "):rep(name_width - k:len() - 1)
 				.. "│ "
-				.. (text_formatter.colours and (string.char(27) .. "[0m") or "")
+				.. text_formatter.colour_codes.RESET
 				.. v_str
-				.. (text_formatter.colours and (string.char(27) .. "[30m") or "")
+				.. text_formatter.colour_codes.GREY
 				.. (" "):rep(value_width - len(v_str) - 1)
 				.. "│\n"
 		end
