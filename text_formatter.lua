@@ -8,7 +8,7 @@ for k, v in pairs(M.colour_codes) do
 	M.colour_codes[k] = colour_char .. "[" .. v .. "m"
 end
 
-M.ty_map = { WAND = ACTION_TYPE_DRAW_MANY }
+M.ty_map = {}
 local col_map = {
 	[ACTION_TYPE_PROJECTILE] = M.colour_codes.RED,
 	[ACTION_TYPE_STATIC_PROJECTILE] = M.colour_codes.RED,
@@ -20,19 +20,23 @@ local col_map = {
 }
 M.colours = false
 
+local function colour_of(id)
+	return col_map[M.ty_map[id] or ACTION_TYPE_DRAW_MANY]
+end
+
 function M.id_text(id)
 	if not M.colours then
 		return id
 	end
-	return col_map[M.ty_map[id]] .. id .. string.char(27) .. "[30m"
+	return colour_of(id) .. id .. string.char(27) .. "[30m"
 end
 
 ---@param a node
 ---@param b node
 ---@return boolean?
 function M.colour_compare(a, b)
-	if col_map[M.ty_map[a.name]] ~= col_map[M.ty_map[b.name]] then
-		return col_map[M.ty_map[a.name]] > col_map[M.ty_map[b.name]]
+	if colour_of(a.name) ~= colour_of(b.name) then
+		return colour_of(a.name) > colour_of(b.name)
 	end
 	return nil
 end
