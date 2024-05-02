@@ -100,9 +100,7 @@ end
 
 ---@param options formatter_options
 function M.evaluate(options)
-	M.calls = { name = "WAND", children = {} }
-	M.cur_node = M.calls.children
-	M.cur_parent = M.calls
+	M.calls = { name = "Wand", children = {} }
 	M.nodes_to_shot_ref = {}
 	M.shot_refs_to_nums = {}
 	M.lines_to_shot_nums = {}
@@ -119,11 +117,17 @@ function M.evaluate(options)
 		table.insert(value, data[v])
 	end
 
-	ConfigGunActionInfo_ReadToLua(unpack(value))
-	_set_gun2()
+	mana = options.mana
+	for i = 1, options.number_of_casts do
+		table.insert(M.calls.children, { name = "Cast #" .. i, children = {} })
+		ConfigGunActionInfo_ReadToLua(unpack(value))
+		_set_gun2()
+		M.cur_parent = M.calls.children[#M.calls.children]
+		M.cur_node = M.cur_parent.children
 
-	_start_shot(options.mana)
-	_draw_actions_for_shot(true)
+		_start_shot(mana)
+		_draw_actions_for_shot(true)
+	end
 end
 
 function M.easy_add(id, charges, drained, unlimited_spells)

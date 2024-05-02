@@ -50,6 +50,10 @@ end
 
 local function numeric(name)
 	return function(val)
+		val = val[1]
+		if not val then
+			error("no numeric value passed to numeric option " .. name)
+		end
 		if val:sub(1, 2) == ".-" then
 			val = val:sub(2)
 		end
