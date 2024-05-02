@@ -19,4 +19,4 @@ for k, v in ipairs(options.spells) do
 end
 
 fake_engine.evaluate(options)
-print(renderer.render(fake_engine.calls, fake_engine, text_formatter))
+print(renderer.render(fake_engine.calls, fake_engine, text_formatter, options))
