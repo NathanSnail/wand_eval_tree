@@ -188,7 +188,7 @@ end
 ---@param calls node
 ---@param engine_data fake_engine
 ---@param text_formatter text_formatter
----@param options formatter_options
+---@param options options
 ---@return string
 function M.render(calls, engine_data, text_formatter, options)
 	flatten(calls, engine_data)
@@ -203,9 +203,9 @@ function M.render(calls, engine_data, text_formatter, options)
 		.. (options.counts and M.render_counts(engine_data, text_formatter) or "")
 		.. (options.states and M.render_shot_states(engine_data, text_formatter) or "")
 
-	render.tree_semi_rendered = (text_formatter.colours and "```ansi\n" or "")
+	render.tree_semi_rendered = (options.ansi and "```ansi\n" or "")
 		.. render.tree_semi_rendered
-		.. (text_formatter.colours and "\n```" or "")
+		.. (options.ansi and "\n```" or "")
 	return render.tree_semi_rendered
 end
 
