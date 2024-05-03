@@ -9,10 +9,10 @@ local options = arg_parser.parse(arg)
 --print_table(options)
 fake_engine.initialise_engine(text_formatter)
 
-text_formatter.colours = options.ansi
+text_formatter.set_colours(options.ansi)
 for _, v in ipairs(options.spells) do
 	if type(v) == "table" then
-		fake_engine.easy_add(v[1], v[2], options.drained)
+		fake_engine.easy_add(v.name, v.count, options.drained)
 	else
 		fake_engine.easy_add(v, nil, options.drained, options.unlimited_spells)
 	end
