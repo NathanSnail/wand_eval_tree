@@ -1,4 +1,5 @@
 local option_list = {
+	h = "help",
 	a = "ansi",
 	d = "drained",
 	e = "every_other",
@@ -6,7 +7,6 @@ local option_list = {
 	t = "tree",
 	c = "counts",
 	s = "states",
-	h = "help",
 	sc = "spells_per_cast",
 	wf = "wand_file",
 	ma = "mana",
@@ -106,6 +106,7 @@ local help_defs = {
 	tree = "whether or not to render the tree",
 	counts = "whether or not to show the counts table",
 	states = "whether or not to show the shot states table, tree always renders the shot states",
+	help = "whether or not to show this menu",
 	spells_per_cast = "the number of spells per cast",
 	wand_file = "the file to load a wand from",
 	mana = "the wands base mana, the wand is assumed to have 0 mana regen",
@@ -115,7 +116,6 @@ local help_defs = {
 	always_casts = "the list of alwayts casts",
 	mod_list = "the list of mods to load",
 	spells = "the list of spells",
-	help = "whether or not to show this menu",
 }
 local help_text = [[
 options are -... or --...
@@ -205,7 +205,7 @@ local M = {}
 
 ---@param args string[]
 ---@return options
-function M.parse(args)
+local function internal_parse(args)
 	local cur_options = {}
 	for k, v in pairs(defaults) do
 		cur_options[k] = v
@@ -239,7 +239,11 @@ function M.parse(args)
 				local flag_char = cur_arg:sub(i, i)
 				local full_name = option_list[flag_char]
 				if defaults[full_name] == nil then
-					error("unknown flag " .. flag_char)
+					if full_name == "help" then -- help cheats because it's single char non flag
+						complex_option_fns[full_name]()
+					else
+						error("unknown flag " .. flag_char)
+					end
 				end
 				cur_options[full_name] = not defaults[full_name]
 			end
@@ -263,6 +267,18 @@ function M.parse(args)
 		ptr = ptr + 1
 	end
 	return cur_options
+end
+
+---@param args string[]
+---@return options
+function M.parse(args)
+	local success, result = pcall(internal_parse, args)
+	if not success then
+		print(result)
+		help()
+		require("os").exit(1, true)
+	end
+	return result
 end
 
 return M
