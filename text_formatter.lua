@@ -18,14 +18,14 @@ local col_map = {
 	[ACTION_TYPE_OTHER] = M.colour_codes.YELLOW,
 	[ACTION_TYPE_DRAW_MANY] = M.colour_codes.CYAN,
 }
-M.colours = false
+local colours = true
 
 local function colour_of(id)
 	return col_map[M.ty_map[id] or ACTION_TYPE_DRAW_MANY]
 end
 
 function M.id_text(id)
-	if not M.colours then
+	if not colours then
 		return id
 	end
 	return colour_of(id) .. id .. string.char(27) .. "[30m"
@@ -39,6 +39,15 @@ function M.colour_compare(a, b)
 		return colour_of(a.name) > colour_of(b.name)
 	end
 	return nil
+end
+
+function M.set_colours(cols)
+	colours = cols
+	if not cols then
+		for k, v in pairs(M.colour_codes) do
+			M.colour_codes[k] = ""
+		end
+	end
 end
 
 return M
