@@ -101,20 +101,20 @@ end
 local help_defs = {
 	ansi = "whether or not to show ansi colour codes and discord formatting",
 	drained = "when true charged spells default to 0 charges, otherwise they use max",
-	every_other = "the initial state of requirement every other",
+	every_other = "the initial state of requirement every other", --TODO:
 	unlimited_spells = "whether you have unlimited spells or not",
 	tree = "whether or not to render the tree",
 	counts = "whether or not to show the counts table",
 	states = "whether or not to show the shot states table, tree always renders the shot states",
 	help = "whether or not to show this menu",
 	spells_per_cast = "the number of spells per cast",
-	wand_file = "the file to load a wand from",
-	mana = "the wands base mana, the wand is assumed to have 0 mana regen",
+	wand_file = "the file to load a wand from", --TODO:
+	mana = "the wands base mana, the wand is assumed to have 0 mana regen", --TODO: mana regen
 	reload_time = "the wands base reload time",
 	cast_delay = "the wands base cast delay",
 	number_of_casts = "the number of casts to calculate",
-	always_casts = "the list of alwayts casts",
-	mod_list = "the list of mods to load",
+	always_casts = "the list of alwayts casts", --TODO:
+	mod_list = "the list of mods to load", --TODO:
 	spells = "the list of spells",
 }
 local help_text = [[

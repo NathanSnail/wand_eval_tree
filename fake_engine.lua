@@ -98,7 +98,7 @@ function M.initialise_engine(text_formatter)
 	end
 end
 
----@param options formatter_options
+---@param options options
 function M.evaluate(options)
 	M.calls = { name = "Wand", children = {} }
 	M.nodes_to_shot_ref = {}
