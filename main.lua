@@ -9,6 +9,7 @@ local options = arg_parser.parse(arg)
 --print_table(options)
 fake_engine.initialise_engine(text_formatter)
 
+print(options.every_other)
 text_formatter.set_colours(options.ansi)
 for _, v in ipairs(options.spells) do
 	if type(v) == "table" then
