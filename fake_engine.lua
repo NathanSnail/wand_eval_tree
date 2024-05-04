@@ -28,11 +28,11 @@ function M.initialise_engine(text_formatter)
 	local _globals = {}
 
 	function GlobalsSetValue(key, value)
-		_globals[key] = value
+		_globals[key] = tostring(value)
 	end
 
 	function GlobalsGetValue(key, value)
-		return _globals[key] or value
+		return tostring(_globals[key] or value)
 	end
 
 	function SetRandomSeed(x, y)
@@ -118,6 +118,8 @@ function M.evaluate(options)
 	end
 
 	mana = options.mana
+	local eo_flag = "GUN_ACTION_IF_HALF_STATUS"
+	GlobalsSetValue(eo_flag, options.every_other and 1 or 0)
 	for i = 1, options.number_of_casts do
 		table.insert(M.calls.children, { name = "Cast #" .. i, children = {} })
 		ConfigGunActionInfo_ReadToLua(unpack(value))

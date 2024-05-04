@@ -37,16 +37,21 @@ local defaults = {
 	spells = {},
 }
 
----@param val string
----@return boolean
-local function boolify(val)
-	val = val:lower()
-	if val == "y" or val == "true" then
-		return true
-	elseif val == "n" or val == "false" then
-		return false
+---@param name string
+---@return fun(val: string?): boolean
+local function boolify(name)
+	return function(val)
+		if val == nil then
+			error("fully specified flag " .. name .. " missing boolean value y/n/true/false")
+		end
+		val = val:lower()
+		if val == "y" or val == "true" then
+			return true
+		elseif val == "n" or val == "false" then
+			return false
+		end
+		error(val .. " is not any of y/n/true/false")
 	end
-	error(val .. " is not any of y/n/true/false")
 end
 
 ---@param name string
@@ -101,7 +106,7 @@ end
 local help_defs = {
 	ansi = "whether or not to show ansi colour codes and discord formatting",
 	drained = "when true charged spells default to 0 charges, otherwise they use max",
-	every_other = "the initial state of requirement every other", --TODO:
+	every_other = "the initial state of requirement every other",
 	unlimited_spells = "whether you have unlimited spells or not",
 	tree = "whether or not to render the tree",
 	counts = "whether or not to show the counts table",
@@ -169,7 +174,7 @@ local function apply_option(option, value)
 	end
 	if not complex_option_fns[option] then
 		if defaults[option] ~= nil then
-			return boolify(value[1]), option
+			return boolify(option)(value[1]), option
 		end
 		error("unknown option " .. option)
 	end
