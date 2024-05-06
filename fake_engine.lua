@@ -128,6 +128,12 @@ function M.evaluate(options)
 		M.cur_node = M.cur_parent.children
 
 		_start_shot(mana)
+		for _, v in ipairs(options.always_casts) do
+			if type(v) == "table" then
+				v = v.name
+			end
+			_play_permanent_card(v)
+		end
 		_draw_actions_for_shot(true)
 	end
 end
