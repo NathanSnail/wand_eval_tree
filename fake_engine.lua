@@ -3,6 +3,40 @@
 ---@class (exact) shot_ref
 ---@field state {string: any}
 
+local function dbg_cards(pile)
+	for _, v in ipairs(pile) do
+		print(v.id)
+	end
+end
+local function dbg_wand()
+	print("discard")
+	dbg_cards(discarded)
+	print("hand")
+	dbg_cards(hand)
+	print("deck")
+	dbg_cards(deck)
+end
+
+local function easy_add(id, charges, drained, unlimited_spells)
+	for _, v in ipairs(actions) do
+		if v.id == id then
+			if v.max_uses == nil then
+				charges = -1
+			elseif unlimited_spells and not v.never_unlimited then
+				charges = -1
+			elseif charges ~= nil then
+				charges = charges
+			elseif drained then
+				charges = 0
+			else
+				charges = v.max_uses
+			end
+			_add_card_to_deck(id, 0, charges, true)
+			return
+		end
+	end
+end
+
 ---@class fake_engine
 local M = {}
 package.path = package.path .. ";/home/nathan/Documents/code/noitadata/?.lua"
@@ -56,20 +90,6 @@ function M.initialise_engine(text_formatter)
 
 	dofile("data/scripts/gun/gun.lua")
 
-	local function dbg_cards(pile)
-		for _, v in ipairs(pile) do
-			print(v.id)
-		end
-	end
-	local function dbg_wand()
-		print("discard")
-		dbg_cards(discarded)
-		print("hand")
-		dbg_cards(hand)
-		print("deck")
-		dbg_cards(deck)
-	end
-
 	_create_shot = create_shot
 	function create_shot(...)
 		local uv = { _create_shot(...) }
@@ -107,6 +127,15 @@ function M.evaluate(options)
 	M.cur_shot_num = 1
 	M.counts = {}
 
+	_clear_deck(false)
+	for _, v in ipairs(options.spells) do
+		if type(v) == "table" then
+			easy_add(v.name, v.count, options.drained)
+		else
+			easy_add(v, nil, options.drained, options.unlimited_spells)
+		end
+	end
+
 	ConfigGun_ReadToLua(options.spells_per_cast, false, options.reload_time, 66)
 	_set_gun()
 	local data = require("data")
@@ -135,26 +164,8 @@ function M.evaluate(options)
 			_play_permanent_card(v)
 		end
 		_draw_actions_for_shot(true)
-	end
-end
-
-function M.easy_add(id, charges, drained, unlimited_spells)
-	for _, v in ipairs(actions) do
-		if v.id == id then
-			if v.max_uses == nil then
-				charges = -1
-			elseif unlimited_spells and not v.never_unlimited then
-				charges = -1
-			elseif charges ~= nil then
-				charges = charges
-			elseif drained then
-				charges = 0
-			else
-				charges = v.max_uses
-			end
-			_add_card_to_deck(id, 0, charges, true)
-			return
-		end
+		--dbg_wand()
+		_handle_reload() -- i don't think we should need this, it seems to break on s/c 26 if we don't though.
 	end
 end
 
