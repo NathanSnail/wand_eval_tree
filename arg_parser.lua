@@ -296,7 +296,6 @@ local function internal_parse(args)
 		end
 		ptr = ptr + 1
 	end
-	print_table(cur_options)
 	if cur_options.wand_file ~= nil then
 		cur_options.spells = cur_options.wand_file
 	end
