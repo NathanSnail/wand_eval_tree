@@ -118,10 +118,11 @@ local help_defs = {
 	reload_time = "the wands base reload time",
 	cast_delay = "the wands base cast delay",
 	number_of_casts = "the number of casts to calculate",
-	always_casts = "the list of alwayts casts", --TODO:
+	always_casts = "the list of alwayts casts",
 	mod_list = "the list of mods to load", --TODO:
 	spells = "the list of spells",
 }
+
 local help_text = [[
 options are -... or --...
 values that are negative use .- instead of -
@@ -226,8 +227,8 @@ local M = {}
 ---@field reload_time integer
 ---@field cast_delay integer
 ---@field number_of_casts integer
----@field always_casts string[]
----@field mod_list spell[]
+---@field always_casts spell[]
+---@field mod_list string[]
 ---@field spells spell[]
 
 ---@param args string[]
