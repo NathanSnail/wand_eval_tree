@@ -157,7 +157,6 @@ local complex_option_fns = {
 			error("Wand file of path " .. file .. " silently failed")
 		end
 		local spell_str = handle:read("*l")
-		print(spell_str)
 		if not spell_str then
 			error("Wand file reading of path " .. file .. " failed")
 		end
