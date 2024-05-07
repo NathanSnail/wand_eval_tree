@@ -42,12 +42,10 @@ end
 
 ---@class fake_engine
 local M = {}
-package.path = package.path .. ";/home/nathan/Documents/code/noitadata/?.lua"
-require("data/scripts/gun/gun_enums")
----@param text_formatter text_formatter
-function M.initialise_engine(text_formatter)
+
+function M.make_fake_api()
 	local _print = print
-	require("AutoLuaAPI.out")
+	require("meta.out")
 	print = _print
 	local socket = require("socket")
 	local frame = math.floor(socket.gettime() * 1000) % 2 ^ 16
@@ -62,14 +60,15 @@ function M.initialise_engine(text_formatter)
 		return math.floor(math.random() * (b - a + 1)) + a
 	end
 
-	local _globals = {}
+	local globals = {}
+	local append_map = {}
 
 	function GlobalsSetValue(key, value)
-		_globals[key] = tostring(value)
+		globals[key] = tostring(value)
 	end
 
 	function GlobalsGetValue(key, value)
-		return tostring(_globals[key] or value)
+		return tostring(globals[key] or value)
 	end
 
 	function SetRandomSeed(x, y)
@@ -80,17 +79,30 @@ function M.initialise_engine(text_formatter)
 		return frame
 	end
 
+	function ModLuaFileAppend(to, from)
+		append_map[to] = append_map[to] or {}
+		table.insert(append_map[to], from)
+	end
+
 	function dofile(file)
-		return require(file:sub(1, file:len() - 4))
+		local res = { require(file:sub(1, file:len() - 4)) }
+		for _, v in ipairs(append_map[file] or {}) do
+			print(file, v)
+			dofile(v)
+		end
+		return unpack(res)
 	end
 	dofile_once = dofile
+
+	dofile("data/scripts/gun/gun_enums.lua")
 
 	--[[function BeginProjectile(p)
 		print(p)
 	end]]
-
+end
+---@param text_formatter text_formatter
+function M.initialise_engine(text_formatter)
 	dofile("data/scripts/gun/gun.lua")
-
 	local _create_shot = create_shot
 	function create_shot(...)
 		local uv = { _create_shot(...) }
@@ -101,6 +113,10 @@ function M.initialise_engine(text_formatter)
 		-- v.state.wand_tree_initial_mana = mana
 		-- TODO: find a way to do this in a garunteed safe way
 		return unpack(uv)
+	end
+
+	function StartReload(reload_time)
+		M.reload_time = reload_time
 	end
 
 	--[[local _draw_shot = draw_shot
@@ -186,12 +202,11 @@ function M.evaluate(options)
 		_draw_actions_for_shot(true)
 		--dbg_wand()
 		local delay = root_shot.state.fire_rate_wait
-		if reloading then
-			_handle_reload()
-			delay = math.max(delay, current_reload_time)
-			-- i don't think we should need this, it seems to break on s/c 26 if we don't though.
-			-- maybe it breaks because of instant reload false setting reloading and not getting unset in time.
-			-- surely _draw_actions_for_shot should do this before though, it should always check it.
+
+		-- cursed nolla design.
+		_handle_reload()
+		if M.reload_time then
+			delay = math.max(delay, M.reload_time)
 		end
 		mana = mana + (1 + delay) * options.mana_charge / 60
 	end

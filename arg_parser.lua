@@ -15,7 +15,7 @@ local option_list = {
 	cd = "cast_delay",
 	nc = "number_of_casts",
 	ac = "always_casts",
-	ml = "mod_list",
+	md = "mods",
 	sp = "spells",
 }
 
@@ -35,7 +35,7 @@ local defaults = {
 	cast_delay = 0,
 	number_of_casts = 1,
 	always_casts = {},
-	mod_list = {},
+	mods = {},
 	spells = {},
 }
 
@@ -125,13 +125,13 @@ local help_defs = {
 	help = "whether or not to show this menu",
 	spells_per_cast = "the number of spells per cast",
 	wand_file = "the file to load a wand from",
-	mana = "the wands base mana, the wand is assumed to have 0 mana regen",
+	mana = "the wands starting mana, the wand is assumed to have infinite mana max",
 	mana_charge = "the wands mana charge rate, in mana / second",
 	reload_time = "the wands base reload time",
 	cast_delay = "the wands base cast delay",
 	number_of_casts = "the number of casts to calculate",
 	always_casts = "the list of alwayts casts",
-	mod_list = "the list of mods to load", --TODO:
+	mods = "the list of mods to load", --TODO:
 	spells = "the list of spells",
 }
 
@@ -186,7 +186,7 @@ local complex_option_fns = {
 	cast_delay = integer("cast_delay"),
 	number_of_casts = integer("number_of_casts"),
 	always_casts = spell_proccess,
-	mod_list = identity,
+	mods = identity,
 	spells = spell_proccess,
 	help = function()
 		error("do help!")
@@ -242,7 +242,7 @@ local M = {}
 ---@field cast_delay integer
 ---@field number_of_casts integer
 ---@field always_casts spell[]
----@field mod_list string[]
+---@field mods string[]
 ---@field spells spell[]
 
 ---@param args string[]
@@ -259,13 +259,11 @@ local function internal_parse(args)
 		return defaults
 	end
 	local ptr = 1
-	local contains_opts = false
-	for _, v in ipairs(args) do
-		contains_opts = contains_opts or v:sub(1, 1) == "-"
-	end
-	if not contains_opts then
-		cur_options.spells = apply_option("--spells", args)
-		return cur_options
+	if args[1]:sub(1, 1) ~= "-" then
+		table.insert(args, 1, "-sp")
+		while ptr <= #args and args[ptr]:sub(1, 1) ~= "-" do
+			ptr = ptr + 1
+		end
 	end
 	while ptr <= #args do
 		local cur_arg = args[ptr]
