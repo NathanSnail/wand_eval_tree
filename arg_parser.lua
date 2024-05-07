@@ -10,6 +10,7 @@ local option_list = {
 	sc = "spells_per_cast",
 	wf = "wand_file",
 	ma = "mana",
+	mc = "mana_charge",
 	rt = "reload_time",
 	cd = "cast_delay",
 	nc = "number_of_casts",
@@ -29,6 +30,7 @@ local defaults = {
 	spells_per_cast = 26,
 	wand_file = nil,
 	mana = 10000,
+	mana_charge = 0,
 	reload_time = 0,
 	cast_delay = 0,
 	number_of_casts = 1,
@@ -55,7 +57,7 @@ local function boolify(name)
 end
 
 ---@param name string
----@return fun(values: string[]): integer
+---@return fun(values: string[]): number
 local function numeric(name)
 	return function(val)
 		val = val[1]
@@ -67,9 +69,18 @@ local function numeric(name)
 		end
 		local value = tonumber(val)
 		if value then
-			return math.floor(value)
+			return value
 		end
 		error("argument to " .. name .. " cannot be converted to a number")
+	end
+end
+
+---@param name string
+---@return fun(val: string[]): integer
+local function integer(name)
+	local base = numeric(name)
+	return function(val)
+		return math.floor(base(val))
 	end
 end
 
@@ -114,7 +125,8 @@ local help_defs = {
 	help = "whether or not to show this menu",
 	spells_per_cast = "the number of spells per cast",
 	wand_file = "the file to load a wand from",
-	mana = "the wands base mana, the wand is assumed to have 0 mana regen", --TODO: mana regen
+	mana = "the wands base mana, the wand is assumed to have 0 mana regen",
+	mana_charge = "the wands mana charge rate, in mana / second",
 	reload_time = "the wands base reload time",
 	cast_delay = "the wands base cast delay",
 	number_of_casts = "the number of casts to calculate",
@@ -142,7 +154,7 @@ local function help()
 	end
 end
 
----@type table<string, fun(values: any[]): any>
+---@type table<string, fun(values: string[]): any>
 local complex_option_fns = {
 	spells_per_cast = numeric("spells_per_cast"),
 	wand_file = function(args)
@@ -169,9 +181,10 @@ local complex_option_fns = {
 		return spell_proccess(spells)
 	end,
 	mana = numeric("mana"),
-	reload_time = numeric("reload_time"),
-	cast_delay = numeric("cast_delay"),
-	number_of_casts = numeric("number_of_casts"),
+	mana_charge = numeric("mana_charge"),
+	reload_time = integer("reload_time"),
+	cast_delay = integer("cast_delay"),
+	number_of_casts = integer("number_of_casts"),
 	always_casts = spell_proccess,
 	mod_list = identity,
 	spells = spell_proccess,
@@ -223,7 +236,8 @@ local M = {}
 ---@field states boolean
 ---@field spells_per_cast integer
 ---@field wand_file spell[]? sort of fictional
----@field mana integer
+---@field mana number
+---@field mana_charge number
 ---@field reload_time integer
 ---@field cast_delay integer
 ---@field number_of_casts integer
