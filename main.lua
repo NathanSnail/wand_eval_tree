@@ -2,6 +2,7 @@ local fake_engine = require("fake_engine")
 ---@type renderer
 local renderer = require("renderer")
 local text_formatter = require("text_formatter")
+---@diagnostic disable-next-line: lowercase-global
 print_table = require("print")
 ---@type arg_parser
 local arg_parser = require("arg_parser")

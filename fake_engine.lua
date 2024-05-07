@@ -1,13 +1,16 @@
 -- Set up the api we are using
 
 ---@class (exact) shot_ref
----@field state {string: any}
+---@field state state
+---@field num_of_cards_to_draw integer
 
+---@diagnostic disable-next-line: unused-function
 local function dbg_cards(pile)
 	for _, v in ipairs(pile) do
 		print(v.id)
 	end
 end
+---@diagnostic disable-next-line: unused-function, unused-local
 local function dbg_wand()
 	print("discard")
 	dbg_cards(discarded)
@@ -77,16 +80,14 @@ function M.initialise_engine(text_formatter)
 		return frame
 	end
 
-	local print_table = require("print")
-
 	function dofile(file)
 		return require(file:sub(1, file:len() - 4))
 	end
 	dofile_once = dofile
 
-	function BeginProjectile(p)
-		-- print(p)
-	end
+	--[[function BeginProjectile(p)
+		print(p)
+	end]]
 
 	dofile("data/scripts/gun/gun.lua")
 
@@ -102,15 +103,15 @@ function M.initialise_engine(text_formatter)
 		return unpack(uv)
 	end
 
-	local _draw_shot = draw_shot
+	--[[local _draw_shot = draw_shot
 	function draw_shot(...)
 		local v = { _draw_shot(...) }
 		local args = { ... }
 		local shot = args[1]
-		-- shot.state.wand_tree_mana = mana - shot.state.wand_tree_initial_mana
-		-- shot.state.wand_tree_initial_mana = nil
+		shot.state.wand_tree_mana = mana - shot.state.wand_tree_initial_mana
+		shot.state.wand_tree_initial_mana = nil
 		return unpack(v)
-	end
+	end]]
 
 	for _, v in ipairs(actions) do
 		text_formatter.ty_map[v.id] = v.type
@@ -179,6 +180,7 @@ function M.evaluate(options)
 			if type(v) == "table" then
 				v = v.name
 			end
+			---@cast v string
 			_play_permanent_card(v)
 		end
 		_draw_actions_for_shot(true)
