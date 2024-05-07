@@ -90,14 +90,26 @@ function M.initialise_engine(text_formatter)
 
 	dofile("data/scripts/gun/gun.lua")
 
-	_create_shot = create_shot
+	local _create_shot = create_shot
 	function create_shot(...)
 		local uv = { _create_shot(...) }
 		local v = uv[1]
 		M.nodes_to_shot_ref[M.cur_parent] = v
 		M.shot_refs_to_nums[v] = M.cur_shot_num
 		M.cur_shot_num = M.cur_shot_num + 1
+		-- v.state.wand_tree_initial_mana = mana
+		-- TODO: find a way to do this in a garunteed safe way
 		return unpack(uv)
+	end
+
+	local _draw_shot = draw_shot
+	function draw_shot(...)
+		local v = { _draw_shot(...) }
+		local args = { ... }
+		local shot = args[1]
+		-- shot.state.wand_tree_mana = mana - shot.state.wand_tree_initial_mana
+		-- shot.state.wand_tree_initial_mana = nil
+		return unpack(v)
 	end
 
 	for _, v in ipairs(actions) do
@@ -146,7 +158,13 @@ function M.evaluate(options)
 		table.insert(value, data[v])
 	end
 
-	mana = options.mana
+	--[[local _handle = _handle_reload
+	_handle_reload = function()
+		print("reloaded")
+		print(reloading)
+		_handle()
+	end]]
+	mana = options.mana -- we don't regen any mana between shots.
 	local eo_flag = "GUN_ACTION_IF_HALF_STATUS"
 	GlobalsSetValue(eo_flag, options.every_other and 1 or 0)
 	for i = 1, options.number_of_casts do
@@ -165,7 +183,15 @@ function M.evaluate(options)
 		end
 		_draw_actions_for_shot(true)
 		--dbg_wand()
-		_handle_reload() -- i don't think we should need this, it seems to break on s/c 26 if we don't though.
+		local delay = root_shot.state.fire_rate_wait
+		if reloading then
+			_handle_reload()
+			delay = math.max(delay, current_reload_time)
+			-- i don't think we should need this, it seems to break on s/c 26 if we don't though.
+			-- maybe it breaks because of instant reload false setting reloading and not getting unset in time.
+			-- surely _draw_actions_for_shot should do this before though, it should always check it.
+		end
+		mana = mana + (1 + delay) * options.mana_charge / 60
 	end
 end
 
