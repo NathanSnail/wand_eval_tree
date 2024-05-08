@@ -87,7 +87,6 @@ function M.make_fake_api()
 	function dofile(file)
 		local res = { require(file:sub(1, file:len() - 4)) }
 		for _, v in ipairs(append_map[file] or {}) do
-			print(file, v)
 			dofile(v)
 		end
 		return unpack(res)
@@ -182,8 +181,7 @@ function M.evaluate(options)
 		_handle()
 	end]]
 	mana = options.mana -- we don't regen any mana between shots.
-	local eo_flag = "GUN_ACTION_IF_HALF_STATUS"
-	GlobalsSetValue(eo_flag, options.every_other and 1 or 0)
+	GlobalsSetValue("GUN_ACTION_IF_HALF_STATUS", options.every_other and 1 or 0)
 	for i = 1, options.number_of_casts do
 		table.insert(M.calls.children, { name = "Cast #" .. i, children = {} })
 		ConfigGunActionInfo_ReadToLua(unpack(value))
@@ -207,6 +205,7 @@ function M.evaluate(options)
 		_handle_reload()
 		if M.reload_time then
 			delay = math.max(delay, M.reload_time)
+			M.reload_time = nil
 		end
 		mana = mana + (1 + delay) * options.mana_charge / 60
 	end
