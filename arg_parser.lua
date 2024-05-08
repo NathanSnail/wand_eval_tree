@@ -131,7 +131,7 @@ local help_defs = {
 	cast_delay = "the wands base cast delay",
 	number_of_casts = "the number of casts to calculate",
 	always_casts = "the list of alwayts casts",
-	mods = "the list of mods to load", --TODO:
+	mods = "the list of mods to load",
 	spells = "the list of spells",
 }
 

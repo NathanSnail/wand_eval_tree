@@ -28,7 +28,7 @@ function M.id_text(id)
 	if not colours then
 		return id
 	end
-	return colour_of(id) .. id .. string.char(27) .. "[30m"
+	return colour_of(id) .. id
 end
 
 ---@param a node

@@ -68,6 +68,7 @@ end
 ---@field name string
 ---@field children node[]
 ---@field count integer?
+---@field extra string?
 
 ---@class (exact) bar
 ---@field start integer
@@ -158,6 +159,8 @@ local function handle(node, prefix, no_extra, indent_level, engine_data, text_fo
 	incomplete_render.tree_semi_rendered = incomplete_render.tree_semi_rendered
 		.. t_prefix
 		.. text_formatter.id_text(node.name)
+		.. (node.extra and (" " .. text_formatter.colour_codes.RESET .. node.extra) or "")
+		.. text_formatter.colour_codes.GREY
 		.. "\n"
 	if engine_data.nodes_to_shot_ref[node] then
 		local _, c = incomplete_render.tree_semi_rendered:gsub("\n", "\n")
@@ -237,6 +240,7 @@ function M.render_counts(engine_data, text_formatter)
 			.. "│ "
 			.. text_formatter.id_text(v[1])
 			.. (" "):rep(big_length - v[1]:len() + 1)
+			.. text_formatter.colour_codes.GREY
 			.. "│ "
 			.. text_formatter.colour_codes.RESET
 			.. v[2]

@@ -148,6 +148,7 @@ end
 
 ---@param options options
 function M.evaluate(options)
+	---@type node
 	M.calls = { name = "Wand", children = {} }
 	M.nodes_to_shot_ref = {}
 	M.shot_refs_to_nums = {}
@@ -180,7 +181,7 @@ function M.evaluate(options)
 		print(reloading)
 		_handle()
 	end]]
-	mana = options.mana -- we don't regen any mana between shots.
+	mana = options.mana
 	GlobalsSetValue("GUN_ACTION_IF_HALF_STATUS", options.every_other and 1 or 0)
 	for i = 1, options.number_of_casts do
 		table.insert(M.calls.children, { name = "Cast #" .. i, children = {} })
@@ -189,6 +190,7 @@ function M.evaluate(options)
 		M.cur_parent = M.calls.children[#M.calls.children]
 		M.cur_node = M.cur_parent.children
 
+		local old_mana = mana
 		_start_shot(mana)
 		for _, v in ipairs(options.always_casts) do
 			if type(v) == "table" then
@@ -207,6 +209,8 @@ function M.evaluate(options)
 			delay = math.max(delay, M.reload_time)
 			M.reload_time = nil
 		end
+		delay = math.max(delay, 0)
+		M.cur_parent.extra = "Delay: " .. delay .. "f, ΔMana: " .. (mana - old_mana)
 		mana = mana + (1 + delay) * options.mana_charge / 60
 	end
 end
