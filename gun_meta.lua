@@ -21,6 +21,7 @@
 ---@field sound_loop_tag string?
 ---@field mana number?
 ---@field sprite_unidentified string?
+---@field deck_index integer
 
 ---@alias state table<string, any>
 
@@ -120,7 +121,7 @@ function set_current_action(action) end
 ---@param target action
 function clone_action(source, target) end
 
----@param text printable_string
+---@param text string
 function debug_print(text) end
 
 ---@param t action[]

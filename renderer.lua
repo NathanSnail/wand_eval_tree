@@ -69,6 +69,7 @@ end
 ---@field children node[]
 ---@field count integer?
 ---@field extra string?
+---@field index integer?
 
 ---@class (exact) bar
 ---@field start integer

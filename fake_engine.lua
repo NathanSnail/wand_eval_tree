@@ -134,7 +134,7 @@ function M.initialise_engine(text_formatter)
 		v.action = function(...)
 			--print(v.id, "happens")
 			local old_node = M.cur_node
-			local new_node = { name = v.id, children = {} }
+			local new_node = { name = v.id, children = {}, index = v.deck_index }
 			M.counts[v.id] = (M.counts[v.id] or 0) + 1
 			M.cur_node = new_node.children
 			M.cur_parent = new_node
@@ -188,6 +188,7 @@ function M.evaluate(options)
 		ConfigGunActionInfo_ReadToLua(unpack(value))
 		_set_gun2()
 		M.cur_parent = M.calls.children[#M.calls.children]
+		local cur_root = M.cur_parent
 		M.cur_node = M.cur_parent.children
 
 		local old_mana = mana
@@ -210,7 +211,7 @@ function M.evaluate(options)
 			M.reload_time = nil
 		end
 		delay = math.max(delay, 0)
-		M.cur_parent.extra = "Delay: " .. delay .. "f, ΔMana: " .. (mana - old_mana)
+		cur_root.extra = "Delay: " .. delay .. "f, ΔMana: " .. (old_mana - mana)
 		mana = mana + (1 + delay) * options.mana_charge / 60
 	end
 end
