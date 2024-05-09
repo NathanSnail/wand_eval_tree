@@ -11,6 +11,7 @@ print_table = require("print")
 local arg_parser = require("arg_parser")
 local options = arg_parser.parse(arg)
 local mod_interface = require("mod_interface")
+local image = require "image"
 --print_table(options)
 mod_interface.load_mods(options.mods)
 fake_engine.initialise_engine(text_formatter)
