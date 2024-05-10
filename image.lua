@@ -12,10 +12,15 @@ local spell_size = 40
 
 local M = {}
 
+-- Lines that go left come from the bottom
+-- All lines start on the right side
+-- If all the children are the card 1 to the right the line goes horizontal
+-- If not, the connection leaves from (top / bottom) right
+-- All incoming connections are centre top / left / bottom
 ---@param calls numeric_tree
-local function compute_lines(calls)
-	---@type line[]
-	local lines = {}
+---@param lines line[]?
+local function compute_lines(calls, lines)
+	lines = lines or {}
 end
 
 ---@class (exact) numeric_tree

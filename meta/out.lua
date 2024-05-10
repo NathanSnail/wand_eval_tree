@@ -7,6 +7,8 @@ function RegisterPerk(id, ui_name, ui_description, ui_icon, perk_icon)  return n
 function GameRegisterStatusEffect(ui_name, ui_description, ui_icon, protects_from_fire, remove_cells_that_cause_when_activated, effect_entity, min_threshold_normalized, extra_status_00, effect_permanent, is_harmful, ui_timer_offset_normalized)  return nil,nil,nil,nil,nil,nil,nil,nil,nil,nil end
 function RegisterStreamingEvent(id, ui_name, ui_description, ui_icon_path, kind, weight)  return nil,nil,nil,nil,nil,nil,nil,nil,nil,nil end
 function DEBUG_GameReset()  return nil,nil,nil,nil,nil,nil,nil,nil,nil,nil end
+function do_mod_appends(filename)  return nil,nil,nil,nil,nil,nil,nil,nil,nil,nil end
+function _ConfigGunActionInfo_ReadToGame(action_id, action_name, action_description, action_sprite_filename, action_unidentified_sprite_filename, action_type, action_spawn_level, action_spawn_probability, action_spawn_requires_flag, action_spawn_manual_unlock, action_max_uses, custom_xml_file, action_mana_drain, action_is_dangerous_blast, action_draw_many_count, action_ai_never_uses, action_never_unlimited, state_shuffled, state_cards_drawn, state_discarded_action, state_destroyed_action, fire_rate_wait, speed_multiplier, child_speed_multiplier, dampening, explosion_radius, spread_degrees, pattern_degrees, screenshake, recoil, damage_melee_add, damage_projectile_add, damage_electricity_add, damage_fire_add, damage_explosion_add, damage_ice_add, damage_slice_add, damage_healing_add, damage_curse_add, damage_drill_add, damage_null_all, damage_critical_chance, damage_critical_multiplier, explosion_damage_to_materials, knockback_force, reload_time, lightning_count, material, material_amount, trail_material, trail_material_amount, bounces, gravity, light, blood_count_multiplier, gore_particles, ragdoll_fx, friendly_fire, physics_impulse_coeff, lifetime_add, sprite, extra_entities, game_effect_entities, sound_loop_tag, projectile_file)  return nil,nil,nil,nil,nil,nil,nil,nil,nil,nil end
 function EntityLoad(filename, pos_x, pos_y)  return 0,0,0,0,0,0,0,0,0,0 end
 function EntityLoadEndGameItem(filename, pos_x, pos_y)  return 0,0,0,0,0,0,0,0,0,0 end
 function EntityLoadCameraBound(filename, pos_x, pos_y)  return 0,0,0,0,0,0,0,0,0,0 end
@@ -372,7 +374,7 @@ function StreamingForceNewVoting()  return false,false,false,false,false,false,f
 function StreamingSetVotingEnabled(enabled)  return false,false,false,false,false,false,false,false,false,false end
 function ModLuaFileAppend(to_filename, from_filename)  return false,false,false,false,false,false,false,false,false,false end
 function ModLuaFileGetAppends(filename)  return {},{},{},{},{},{},{},{},{},{} end
-function ModLuaFileSetAppends(filename)  return {},{},{},{},{},{},{},{},{},{} end
+function ModLuaFileSetAppends(filename, appends)  return {},{},{},{},{},{},{},{},{},{} end
 function ModTextFileGetContent(filename)  return "","","","","","","","","","" end
 function ModTextFileSetContent(filename, new_content)  return "","","","","","","","","","" end
 function ModTextFileWhoSetContent(filename)  return "","","","","","","","","","" end
