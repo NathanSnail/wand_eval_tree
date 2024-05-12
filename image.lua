@@ -31,8 +31,10 @@ local function compute_lines(edges)
 	-- forward pass
 	for gap = 1, #edges do
 		for start = 1, #edges - gap do
+			print(gap, start)
 			for _, v in ipairs(edges[start]) do
 				if v == gap + start then
+					print(gap, start)
 					local highest = 0
 					for i = start + 1, gap + start - 1 do
 						highest = math.max(highest, height_map[i])
@@ -67,6 +69,7 @@ local function compute_graph(calls, graph)
 	local cur = calls.index
 	for _, v in ipairs(calls.children) do
 		add_edge(cur, v.index)
+		graph[v.index] = graph[v.index] or {}
 		compute_graph(v, graph)
 	end
 	return graph
@@ -87,6 +90,20 @@ local function make_numeric(calls)
 	return new
 end
 
+---@param graph graph
+---@return graph
+local function clean_graph(graph)
+	local new = {}
+	for k, v in pairs(graph) do
+		new[k + 1] = v
+		for k2, v2 in pairs(v) do
+			v[k2] = v2 + 1
+		end
+	end
+	new[0] = nil
+	return new
+end
+
 ---@param base any
 ---@param lines line[]
 local function draw(base, lines) end
@@ -96,8 +113,9 @@ local function render_spells(calls) end
 
 function M.render(calls)
 	local numeric = make_numeric(calls)
-	print_table(numeric)
 	local graph = compute_graph(numeric)
+	graph = clean_graph(graph)
+	print_table(graph)
 	local lines = compute_lines(graph)
 	print_table(lines)
 end
