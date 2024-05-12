@@ -101,6 +101,7 @@ function M.make_fake_api()
 		print(p)
 	end]]
 end
+
 ---@param text_formatter text_formatter
 function M.initialise_engine(text_formatter)
 	dofile("data/scripts/gun/gun.lua")
