@@ -11,6 +11,7 @@ local spell_size = 40
 ---@field path point[]
 
 ---@alias graph integer[][]
+---@class image
 local M = {}
 
 -- Lines that go left come from the bottom
@@ -51,6 +52,7 @@ local function compute_lines(edges)
 			end
 		end
 	end
+	return lines
 end
 
 ---@param calls numeric_tree
@@ -94,7 +96,10 @@ local function render_spells(calls) end
 
 function M.render(calls)
 	local numeric = make_numeric(calls)
-	local lines = compute_lines(numeric)
+	print_table(numeric)
+	local graph = compute_graph(numeric)
+	local lines = compute_lines(graph)
+	print_table(lines)
 end
 
 return M

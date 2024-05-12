@@ -35,6 +35,8 @@ local function easy_add(id, charges, drained, unlimited_spells)
 				charges = v.max_uses
 			end
 			_add_card_to_deck(id, 0, charges, true)
+			local card = deck[#deck]
+			card.action = card.action(#deck)
 			return
 		end
 	end
@@ -131,17 +133,19 @@ function M.initialise_engine(text_formatter)
 	for _, v in ipairs(actions) do
 		text_formatter.ty_map[v.id] = v.type
 		local _a = v.action
-		v.action = function(...)
-			--print(v.id, "happens")
-			local old_node = M.cur_node
-			local new_node = { name = v.id, children = {}, index = v.deck_index }
-			M.counts[v.id] = (M.counts[v.id] or 0) + 1
-			M.cur_node = new_node.children
-			M.cur_parent = new_node
-			table.insert(old_node, new_node)
-			local res = { _a(...) }
-			M.cur_node = old_node
-			return unpack(res)
+		v.action = function(deck_index)
+			return function(...)
+				--print(v.id, "happens")
+				local old_node = M.cur_node
+				local new_node = { name = v.id, children = {}, index = deck_index }
+				M.counts[v.id] = (M.counts[v.id] or 0) + 1
+				M.cur_node = new_node.children
+				M.cur_parent = new_node
+				table.insert(old_node, new_node)
+				local res = { _a(...) }
+				M.cur_node = old_node
+				return unpack(res)
+			end
 		end
 	end
 end
