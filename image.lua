@@ -20,18 +20,21 @@ local M = {}
 -- If not, the connection leaves from (top / bottom) right
 -- All incoming connections are centre top / left / bottom
 ---@param edges graph
+---@param wand spell[]
 ---@return line[]
-local function compute_lines(edges)
+local function compute_lines(edges, wand)
 	---@type line[]
 	local lines = {}
 	local height_map = {}
-	for i = 1, #edges do
+	for i = 1, #wand do
 		height_map[i] = 0
 	end
 	-- forward pass
-	for gap = 1, #edges do
-		for start = 1, #edges - gap do
-			print(gap, start)
+	for gap = 1, #wand do
+		for start = 1, #wand - gap do
+			if not edges[start] then
+				goto continue
+			end
 			for _, v in ipairs(edges[start]) do
 				if v == gap + start then
 					print(gap, start)
@@ -52,6 +55,7 @@ local function compute_lines(edges)
 					break
 				end
 			end
+			::continue::
 		end
 	end
 	return lines
@@ -108,16 +112,21 @@ end
 ---@param lines line[]
 local function draw(base, lines) end
 
----@param calls node
-local function render_spells(calls) end
+---@param wand spell[]
+local function render_spells(wand)
+	local img = vips.Image.new()
+	return img
+end
 
-function M.render(calls)
+function M.render(calls, wand)
 	local numeric = make_numeric(calls)
 	local graph = compute_graph(numeric)
 	graph = clean_graph(graph)
 	print_table(graph)
-	local lines = compute_lines(graph)
+	local lines = compute_lines(graph, wand)
 	print_table(lines)
+	local img = render_spells(wand)
+	img:write_to_file("temp.png")
 end
 
 return M

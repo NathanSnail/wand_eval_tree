@@ -19,5 +19,5 @@ fake_engine.initialise_engine(text_formatter)
 
 text_formatter.set_colours(options.ansi)
 fake_engine.evaluate(options)
-image.render(fake_engine.calls)
+image.render(fake_engine.calls, options.spells)
 print(renderer.render(fake_engine.calls, fake_engine, text_formatter, options))
