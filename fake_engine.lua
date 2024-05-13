@@ -203,7 +203,17 @@ function M.evaluate(options)
 				v = v.name
 			end
 			---@cast v string
+			print(v)
+			local s = "set_current_action"
+			local _c = _G[s]
+			_G[s] = function(...)
+				for _, v2 in ipairs({ ... }) do
+					print_table(v2)
+				end
+				_c(...)
+			end
 			_play_permanent_card(v)
+			_G[s] = _c
 		end
 		_draw_actions_for_shot(true)
 		--dbg_wand()
