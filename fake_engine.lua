@@ -36,6 +36,7 @@ local function easy_add(id, charges, drained, unlimited_spells)
 			end
 			_add_card_to_deck(id, 0, charges, true)
 			local card = deck[#deck]
+			---@diagnostic disable-next-line: missing-parameter, assign-type-mismatch, param-type-mismatch
 			card.action = card.action(card)
 			return
 		end
@@ -148,6 +149,7 @@ function M.initialise_engine(text_formatter)
 				return unpack(res)
 			end
 			if type(clone) == "table" then -- this is awful
+				---@diagnostic disable-next-line: return-type-mismatch
 				return new
 			end
 			clone = { deck_index = -1 }
