@@ -134,9 +134,9 @@ function M.initialise_engine(text_formatter)
 	for _, v in ipairs(actions) do
 		text_formatter.ty_map[v.id] = v.type
 		local _a = v.action
-		v.action = function(clone)
-			return function(...)
-				--print(v.id, "happens")
+		v.action = function(clone, ...)
+			local new = function(...)
+				---@cast clone action
 				local old_node = M.cur_node
 				local new_node = { name = v.id, children = {}, index = clone.deck_index }
 				M.counts[v.id] = (M.counts[v.id] or 0) + 1
@@ -147,6 +147,11 @@ function M.initialise_engine(text_formatter)
 				M.cur_node = old_node
 				return unpack(res)
 			end
+			if type(clone) == "table" then -- this is awful
+				return new
+			end
+			clone = { deck_index = -1 }
+			return unpack({ new(...) })
 		end
 	end
 end
@@ -203,17 +208,16 @@ function M.evaluate(options)
 				v = v.name
 			end
 			---@cast v string
-			print(v)
-			local s = "set_current_action"
+			--[[local s = "set_current_action"
 			local _c = _G[s]
 			_G[s] = function(...)
 				for _, v2 in ipairs({ ... }) do
 					print_table(v2)
 				end
 				_c(...)
-			end
+			end]]
 			_play_permanent_card(v)
-			_G[s] = _c
+			--_G[s] = _c
 		end
 		_draw_actions_for_shot(true)
 		--dbg_wand()
