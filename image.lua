@@ -37,7 +37,6 @@ local function compute_lines(edges, wand)
 			end
 			for _, v in ipairs(edges[start]) do
 				if v == gap + start then
-					print(gap, start)
 					local highest = 0
 					for i = start + 1, gap + start - 1 do
 						highest = math.max(highest, height_map[i])
@@ -114,7 +113,7 @@ local function draw(base, lines) end
 
 ---@param wand spell[]
 local function render_spells(wand)
-	local img = vips.Image.new()
+	local img = vips.Image.xyz(32, 32)
 	return img
 end
 
@@ -122,9 +121,9 @@ function M.render(calls, wand)
 	local numeric = make_numeric(calls)
 	local graph = compute_graph(numeric)
 	graph = clean_graph(graph)
-	print_table(graph)
+	--print_table(graph)
 	local lines = compute_lines(graph, wand)
-	print_table(lines)
+	--print_table(lines)
 	local img = render_spells(wand)
 	img:write_to_file("temp.png")
 end
