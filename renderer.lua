@@ -300,7 +300,14 @@ local function gather_state_modifications(state, first)
 	if diff.extra_entities == "" then
 		diff.extra_entities = nil
 	end
-	return diff
+	local t = {}
+	for k, v in pairs(diff) do
+		table.insert(t, { k, v })
+	end
+	table.sort(t, function(a, b)
+		return a[1] < b[1]
+	end)
+	return t
 end
 
 ---@param engine_data fake_engine
@@ -318,9 +325,11 @@ function M.render_shot_states(engine_data, text_formatter)
 		local diff = gather_state_modifications(shot.state, num == 1)
 		local name_width = 0
 		local value_width = 0
-		for k, v in pairs(diff) do
-			name_width = math.max(name_width, k:len())
-			value_width = math.max(value_width, tostring(v):len())
+		for _, v in ipairs(diff) do
+			local key = v[1]
+			local value = v[2]
+			name_width = math.max(name_width, key:len())
+			value_width = math.max(value_width, tostring(value):len())
 		end
 		name_width = name_width + 2
 		value_width = value_width + 2
@@ -331,14 +340,16 @@ function M.render_shot_states(engine_data, text_formatter)
 			.. "┬"
 			.. ("─"):rep(value_width)
 			.. "┐\n"
-		for k, v in pairs(diff) do
-			local v_str = tostring(v)
+		for _, v in ipairs(diff) do
+			local key = v[1]
+			local value = v[2]
+			local v_str = tostring(value)
 			shot_table = shot_table
 				.. "│ "
 				.. text_formatter.colour_codes.RESET
-				.. k
+				.. key
 				.. text_formatter.colour_codes.GREY
-				.. (" "):rep(name_width - k:len() - 1)
+				.. (" "):rep(name_width - key:len() - 1)
 				.. "│ "
 				.. text_formatter.colour_codes.RESET
 				.. v_str
