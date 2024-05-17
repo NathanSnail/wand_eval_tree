@@ -1,4 +1,5 @@
-local vips = require("vips")
+local magick = require("magick")
+
 
 local spell_size = 40
 
@@ -113,7 +114,7 @@ local function draw(base, lines) end
 
 ---@param wand spell[]
 local function render_spells(wand)
-	local img = vips.Image.xyz(32, 32)
+	local img = magick.load_image("temp.png")
 	return img
 end
 
@@ -125,7 +126,8 @@ function M.render(calls, wand)
 	local lines = compute_lines(graph, wand)
 	--print_table(lines)
 	local img = render_spells(wand)
-	img:write_to_file("temp.png")
+	img:resize(100,100)
+	img:write("new.png")
 end
 
 return M
