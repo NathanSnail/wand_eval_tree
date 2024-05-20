@@ -222,11 +222,8 @@ function M.render_counts(engine_data, text_formatter)
 	local big_length = 0
 	local big_length2 = 0
 	for k, v in pairs(engine_data.counts) do
-		local nv = (engine_data.translations[k] or k)
-		table.insert(count_pairs, { nv, tostring(v), v })
-		print(k)
-		print(engine_data.translations[k])
-		big_length = math.max(big_length, nv:len())
+		table.insert(count_pairs, { k, tostring(v), v })
+		big_length = math.max(big_length, (engine_data.translations[k] or k):len())
 		big_length2 = math.max(big_length2, tostring(v):len())
 	end
 	table.sort(count_pairs, function(a, b)
@@ -244,7 +241,7 @@ function M.render_counts(engine_data, text_formatter)
 		count_message = count_message
 			.. "│ "
 			.. text_formatter.id_text(v[1], engine_data.translations)
-			.. (" "):rep(big_length - v[1]:len() + 1)
+			.. (" "):rep(big_length - (engine_data.translations[v[1]] or v[1]):len() + 1)
 			.. text_formatter.colour_codes.GREY
 			.. "│ "
 			.. text_formatter.colour_codes.RESET

@@ -55,13 +55,11 @@ function M.make_fake_api(path, options)
 	local file = assert(assert(io.open(path .. "data/translations/common.csv", "r")):read("*a"))
 	local csv = tcsv.parse(file, "common.csv", false)
 	local csv_lang_row = nil
-	print(options.language)
 	for k, v in ipairs(csv.langs) do
 		if v == options.language then
 			csv_lang_row = k + 1
 		end
 	end
-	print(csv_lang_row)
 	for _, v in ipairs(csv.rows) do
 		actual_translations[v[1]] = v[csv_lang_row]
 	end
