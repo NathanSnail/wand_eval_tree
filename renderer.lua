@@ -146,7 +146,8 @@ end
 ---@param engine_data fake_engine
 ---@param text_formatter text_formatter
 ---@param incomplete_render incomplete_render
-local function handle(node, prefix, no_extra, indent_level, engine_data, text_formatter, incomplete_render)
+---@param options options
+local function handle(node, prefix, no_extra, indent_level, engine_data, text_formatter, incomplete_render, options)
 	indent_level = indent_level or 0
 	local t_prefix = ""
 	for k = 1, prefix:len() do
@@ -159,7 +160,7 @@ local function handle(node, prefix, no_extra, indent_level, engine_data, text_fo
 	end
 	incomplete_render.tree_semi_rendered = incomplete_render.tree_semi_rendered
 		.. t_prefix
-		.. text_formatter.id_text(node.name)
+		.. text_formatter.id_text(node.name, engine_data.translations)
 		.. (node.extra and (" " .. text_formatter.colour_codes.RESET .. node.extra) or "")
 		.. text_formatter.colour_codes.GREY
 		.. "\n"
@@ -185,7 +186,7 @@ local function handle(node, prefix, no_extra, indent_level, engine_data, text_fo
 		if no_extra then
 			prefix = prefix:sub(1, prefix:len() - 1) .. " "
 		end
-		handle(v, prefix .. "#", dont, indent_level + 1, engine_data, text_formatter, incomplete_render)
+		handle(v, prefix .. "#", dont, indent_level + 1, engine_data, text_formatter, incomplete_render, options)
 	end
 end
 
@@ -199,7 +200,7 @@ function M.render(calls, engine_data, text_formatter, options)
 	pre_multiply(calls, 1)
 	local render = { tree_semi_rendered = "", bars = { { start = 1, finish = 0, right_shift = 0, value = 1 } } }
 	if options.tree then
-		handle(calls, "", false, 0, engine_data, text_formatter, render)
+		handle(calls, "", false, 0, engine_data, text_formatter, render, options)
 		render = post_multiply(render, engine_data, text_formatter)
 	end
 	render.tree_semi_rendered = render.tree_semi_rendered
@@ -221,8 +222,11 @@ function M.render_counts(engine_data, text_formatter)
 	local big_length = 0
 	local big_length2 = 0
 	for k, v in pairs(engine_data.counts) do
-		table.insert(count_pairs, { k, tostring(v), v })
-		big_length = math.max(big_length, k:len())
+		local nv = (engine_data.translations[k] or k)
+		table.insert(count_pairs, { nv, tostring(v), v })
+		print(k)
+		print(engine_data.translations[k])
+		big_length = math.max(big_length, nv:len())
 		big_length2 = math.max(big_length2, tostring(v):len())
 	end
 	table.sort(count_pairs, function(a, b)
@@ -239,7 +243,7 @@ function M.render_counts(engine_data, text_formatter)
 	for _, v in ipairs(count_pairs) do
 		count_message = count_message
 			.. "│ "
-			.. text_formatter.id_text(v[1])
+			.. text_formatter.id_text(v[1], engine_data.translations)
 			.. (" "):rep(big_length - v[1]:len() + 1)
 			.. text_formatter.colour_codes.GREY
 			.. "│ "

@@ -46,10 +46,37 @@ end
 ---@class fake_engine
 local M = {}
 
-function M.make_fake_api()
+---@param path string
+---@param options options
+function M.make_fake_api(path, options)
+	local tcsv = require("extra.tcsv")
+	package.path = package.path .. ";" .. path .. "?.lua"
+	local actual_translations = {}
+	local file = assert(assert(io.open(path .. "data/translations/common.csv", "r")):read("*a"))
+	local csv = tcsv.parse(file, "common.csv", false)
+	local csv_lang_row = nil
+	print(options.language)
+	for k, v in ipairs(csv.langs) do
+		if v == options.language then
+			csv_lang_row = k + 1
+		end
+	end
+	print(csv_lang_row)
+	for _, v in ipairs(csv.rows) do
+		actual_translations[v[1]] = v[csv_lang_row]
+	end
+
 	local _print = print
 	require("meta.out")
 	print = _print
+
+	function GameTextGetTranslatedOrNot(text_or_key)
+		if text_or_key:sub(1, 1) == "$" then
+			return actual_translations[text_or_key:sub(2)] or text_or_key
+		end
+		return text_or_key
+	end
+
 	local socket = require("socket")
 	local frame = math.floor(socket.gettime() * 1000) % 2 ^ 16
 	function Random(a, b)
@@ -104,7 +131,8 @@ function M.make_fake_api()
 end
 
 ---@param text_formatter text_formatter
-function M.initialise_engine(text_formatter)
+---@param options options
+function M.initialise_engine(text_formatter, options)
 	dofile("data/scripts/gun/gun.lua")
 	local _create_shot = create_shot
 	function create_shot(...)
@@ -132,6 +160,7 @@ function M.initialise_engine(text_formatter)
 		return unpack(v)
 	end]]
 
+	M.translations = {}
 	for _, v in ipairs(actions) do
 		text_formatter.ty_map[v.id] = v.type
 		local _a = v.action
@@ -154,6 +183,11 @@ function M.initialise_engine(text_formatter)
 			end
 			clone = { deck_index = -1 }
 			return unpack({ new(...) })
+		end
+		if options.language then
+			M.translations[v.id] = GameTextGetTranslatedOrNot(v.name)
+			--print(v.id, v.name, GameTextGetTranslatedOrNot(v.name))
+			--print(v.name:len())
 		end
 	end
 end
