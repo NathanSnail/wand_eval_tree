@@ -24,7 +24,11 @@ local function colour_of(id)
 	return col_map[M.ty_map[id] or ACTION_TYPE_DRAW_MANY]
 end
 
-function M.id_text(id)
+---@param id string
+---@param translations table<string, string>
+---@return string
+function M.id_text(id, translations)
+	id = translations[id] or id
 	if not colours then
 		return id
 	end

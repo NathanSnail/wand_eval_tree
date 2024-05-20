@@ -7,6 +7,7 @@ local option_list = {
 	t = "tree",
 	c = "counts",
 	s = "states",
+	ln = "language",
 	sc = "spells_per_cast",
 	wf = "wand_file",
 	ma = "mana",
@@ -123,6 +124,7 @@ local help_defs = {
 	counts = "whether or not to show the counts table",
 	states = "whether or not to show the shot states table, tree always renders the shot states",
 	help = "whether or not to show this menu",
+	language = "use translations of language given",
 	spells_per_cast = "the number of spells per cast",
 	wand_file = "the file to load a wand from",
 	mana = "the wands starting mana, the wand is assumed to have infinite mana max",
@@ -156,6 +158,9 @@ end
 
 ---@type table<string, fun(values: string[]): any>
 local complex_option_fns = {
+	language = function(a)
+		return a[1]
+	end,
 	spells_per_cast = numeric("spells_per_cast"),
 	wand_file = function(args)
 		local file = args[1]
@@ -234,6 +239,7 @@ local M = {}
 ---@field tree boolean
 ---@field counts boolean
 ---@field states boolean
+---@field language string?
 ---@field spells_per_cast integer
 ---@field wand_file spell[]? sort of fictional
 ---@field mana number
