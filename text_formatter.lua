@@ -28,11 +28,11 @@ end
 ---@param translations table<string, string>
 ---@return string
 function M.id_text(id, translations)
-	id = translations[id] or id
-	if not colours then
-		return id
+	local name = translations[id] or id
+	if colours then
+		name = colour_of(id) .. name
 	end
-	return colour_of(id) .. id
+	return name
 end
 
 ---@param a node
