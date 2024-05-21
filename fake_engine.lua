@@ -48,7 +48,6 @@ local M = {}
 
 ---@param options options
 local function regenerate_translations(options)
-	print("regenerated!")
 	-- print(ModTextFileGetContent("data/translations/common.csv"))
 	local actual_translations = {}
 	local tcsv = require("extra.tcsv")
@@ -118,7 +117,6 @@ function M.make_fake_api(options)
 	function ModTextFileGetContent(filename)
 		local success, res = pcall(function()
 			if M.vfs[filename] then
-				print("cached")
 				return M.vfs[filename]
 			end
 			if filename:sub(1, 4) == "mods" then
@@ -126,7 +124,6 @@ function M.make_fake_api(options)
 			end
 			return assert(assert(io.open(M.data_path .. filename)):read("*a"))
 		end)
-		print(success, filename)
 		if not success then
 			return ""
 		end
