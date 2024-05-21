@@ -46,14 +46,12 @@ end
 ---@class fake_engine
 local M = {}
 
----@param path string
+---@param content string
 ---@param options options
-function M.make_fake_api(path, options)
-	local tcsv = require("extra.tcsv")
-	package.path = package.path .. ";" .. path .. "?.lua"
+local function regenerate_translations(options)
 	local actual_translations = {}
-	local file = assert(assert(io.open(path .. "data/translations/common.csv", "r")):read("*a"))
-	local csv = tcsv.parse(file, "common.csv", false)
+	local tcsv = require("extra.tcsv")
+	local csv = tcsv.parse(ModTextFileGetContent("data/translations/common.csv"), "common.csv", false)
 	local csv_lang_row = nil
 	for k, v in ipairs(csv.langs) do
 		if v == options.language then
@@ -63,17 +61,38 @@ function M.make_fake_api(path, options)
 	for _, v in ipairs(csv.rows) do
 		actual_translations[v[1]] = v[csv_lang_row]
 	end
-
-	local _print = print
-	require("meta.out")
-	print = _print
-
 	function GameTextGetTranslatedOrNot(text_or_key)
 		if text_or_key:sub(1, 1) == "$" then
 			return actual_translations[text_or_key:sub(2)] or text_or_key
 		end
 		return text_or_key
 	end
+
+	for _, v in ipairs(actions or {}) do
+		if options.language then
+			M.translations[v.id] = GameTextGetTranslatedOrNot(v.name)
+			--print(v.id, v.name, GameTextGetTranslatedOrNot(v.name))
+			--print(v.name:len())
+		end
+	end
+end
+
+M.mods_path = ""
+M.data_path = ""
+
+---@param options options
+function M.make_fake_api(options)
+	package.path = package.path .. ";" .. M.data_path .. "?.lua;" .. M.mods_path .. "?.lua"
+	M.vfs = {
+		["data/translations/common.csv"] = assert(
+			assert(io.open(M.data_path .. "data/translations/common.csv", "r")):read("*a")
+		),
+	}
+	local _print = print
+	require("meta.out")
+	print = _print
+
+	regenerate_translations(options)
 
 	local socket = require("socket")
 	local frame = math.floor(socket.gettime() * 1000) % 2 ^ 16
@@ -93,6 +112,26 @@ function M.make_fake_api(path, options)
 
 	function GlobalsSetValue(key, value)
 		globals[key] = tostring(value)
+	end
+
+	function ModTextFileGetContent(filename)
+		local success, res = pcall(function()
+			if M.vfs[filename] then
+				return M.vfs[filename]
+			end
+			if filename:sub(1, 4) == "mods/" then
+				return assert(assert(io.open(M.mods_path .. filename)):read("*a"))
+			end
+			return assert(assert(io.open(M.data_path .. filename)):read("*a"))
+		end)
+		if not success then
+			return ""
+		end
+		return res
+	end
+
+	function ModTextFileSetContent(filename, new_content)
+		M.vfs[filename] = new_content
 	end
 
 	function GlobalsGetValue(key, value)
@@ -182,12 +221,8 @@ function M.initialise_engine(text_formatter, options)
 			clone = { deck_index = -1 }
 			return unpack({ new(...) })
 		end
-		if options.language then
-			M.translations[v.id] = GameTextGetTranslatedOrNot(v.name)
-			--print(v.id, v.name, GameTextGetTranslatedOrNot(v.name))
-			--print(v.name:len())
-		end
 	end
+	regenerate_translations(options)
 end
 
 ---@param options options
