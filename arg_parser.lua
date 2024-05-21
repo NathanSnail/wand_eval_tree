@@ -262,7 +262,7 @@ local function internal_parse(args)
 	end
 
 	if #args == 0 then
-		return defaults
+		error("must pass args")
 	end
 	local ptr = 1
 	if args[1]:sub(1, 1) ~= "-" then
