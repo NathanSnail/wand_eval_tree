@@ -1,6 +1,5 @@
 local magick = require("magick")
 
-
 local spell_size = 40
 
 ---@class point
@@ -15,11 +14,11 @@ local spell_size = 40
 ---@class image
 local M = {}
 
--- Lines that go left come from the bottom
--- All lines start on the right side
--- If all the children are the card 1 to the right the line goes horizontal
--- If not, the connection leaves from (top / bottom) right
--- All incoming connections are centre top / left / bottom
+---Lines that go left come from the bottom
+---All lines start on the right side
+---If all the children are the card 1 to the right the line goes horizontal
+---If not, the connection leaves from (top / bottom) right
+---All incoming connections are centre top / left / bottom
 ---@param edges graph
 ---@param wand spell[]
 ---@return line[]

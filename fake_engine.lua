@@ -46,9 +46,10 @@ end
 ---@class fake_engine
 local M = {}
 
----@param content string
 ---@param options options
 local function regenerate_translations(options)
+	print("regenerated!")
+	-- print(ModTextFileGetContent("data/translations/common.csv"))
 	local actual_translations = {}
 	local tcsv = require("extra.tcsv")
 	local csv = tcsv.parse(ModTextFileGetContent("data/translations/common.csv"), "common.csv", false)
@@ -117,13 +118,15 @@ function M.make_fake_api(options)
 	function ModTextFileGetContent(filename)
 		local success, res = pcall(function()
 			if M.vfs[filename] then
+				print("cached")
 				return M.vfs[filename]
 			end
-			if filename:sub(1, 4) == "mods/" then
+			if filename:sub(1, 4) == "mods" then
 				return assert(assert(io.open(M.mods_path .. filename)):read("*a"))
 			end
 			return assert(assert(io.open(M.data_path .. filename)):read("*a"))
 		end)
+		print(success, filename)
 		if not success then
 			return ""
 		end
@@ -132,6 +135,9 @@ function M.make_fake_api(options)
 
 	function ModTextFileSetContent(filename, new_content)
 		M.vfs[filename] = new_content
+		if filename == "data/translations/common.csv" then
+			regenerate_translations(options)
+		end
 	end
 
 	function GlobalsGetValue(key, value)
