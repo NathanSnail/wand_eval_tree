@@ -22,6 +22,27 @@ end
 ---@param node node
 ---@param engine_data fake_engine
 local function flatten(node, engine_data)
+	local raw = require("data")
+	local equal = true
+	if engine_data.nodes_to_shot_ref[node] then
+		for k, v in pairs(engine_data.nodes_to_shot_ref[node].state) do
+			if raw[k] ~= v and not ({ action_draw_many_count = true, reload_time = true })[k] then
+				equal = false
+			end
+		end
+
+		if equal then
+			local num = engine_data.shot_refs_to_nums[engine_data.nodes_to_shot_ref[node]]
+			for k, v in pairs(engine_data.shot_refs_to_nums) do
+				if num.real < v.real then
+					engine_data.shot_refs_to_nums[k].disp = engine_data.shot_refs_to_nums[k].disp - 1
+				end
+			end
+
+			engine_data.nodes_to_shot_ref[node] = nil
+		end
+	end
+
 	node.count = 1
 	local i = 1
 	---@type string | false
@@ -166,7 +187,7 @@ local function handle(node, prefix, no_extra, indent_level, engine_data, text_fo
 		.. "\n"
 	if engine_data.nodes_to_shot_ref[node] then
 		local _, c = incomplete_render.tree_semi_rendered:gsub("\n", "\n")
-		local cur_line = engine_data.shot_refs_to_nums[engine_data.nodes_to_shot_ref[node]]
+		local cur_line = engine_data.shot_refs_to_nums[engine_data.nodes_to_shot_ref[node]].disp
 		engine_data.lines_to_shot_nums[c] = cur_line
 	end
 	local last_bar = incomplete_render.bars[#incomplete_render.bars]
@@ -318,7 +339,7 @@ function M.render_shot_states(engine_data, text_formatter)
 	local shot_nums_to_refs = {}
 
 	for shot, num in pairs(engine_data.shot_refs_to_nums) do
-		shot_nums_to_refs[num] = shot
+		shot_nums_to_refs[num.disp] = shot
 	end
 	local out = ""
 	for num, shot in ipairs(shot_nums_to_refs) do
