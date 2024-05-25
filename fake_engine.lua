@@ -179,7 +179,7 @@ function M.initialise_engine(text_formatter, options)
 		local uv = { _create_shot(...) }
 		local v = uv[1]
 		M.nodes_to_shot_ref[M.cur_parent] = v
-		M.shot_refs_to_nums[v] = M.cur_shot_num
+		M.shot_refs_to_nums[v] = { disp = M.cur_shot_num, real = M.cur_shot_num }
 		M.cur_shot_num = M.cur_shot_num + 1
 		-- v.state.wand_tree_initial_mana = mana
 		-- TODO: find a way to do this in a garunteed safe way
