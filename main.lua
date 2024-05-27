@@ -15,8 +15,6 @@ print_table = require("print")
 local mod_interface = require("mod_interface")
 ---@type image
 local image = require("image")
-local csv_loader = require("extra.tcsv")
---print_table(options)
 mod_interface.load_mods(options.mods)
 fake_engine.initialise_engine(text_formatter, options)
 
