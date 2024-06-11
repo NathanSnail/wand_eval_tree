@@ -17,6 +17,7 @@ local col_map = {
 	[ACTION_TYPE_MATERIAL] = M.colour_codes.GREEN,
 	[ACTION_TYPE_OTHER] = M.colour_codes.YELLOW,
 	[ACTION_TYPE_DRAW_MANY] = M.colour_codes.CYAN,
+	[ACTION_TYPE_PASSIVE] = M.colour_codes.CYAN,
 }
 local colours = true
 
