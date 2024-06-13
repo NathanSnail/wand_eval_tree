@@ -3,7 +3,7 @@ local arg_parser = require("arg_parser")
 local options = arg_parser.parse(arg)
 
 local fake_engine = require("fake_engine")
-fake_engine.data_path = "/home/nathan/Documents/code/noitadata/"
+fake_engine.data_path = "~/nathan/Documents/code/noitadata/"
 fake_engine.mods_path = "~/.local/share/Steam/steamapps/common/Noita/"
 fake_engine.make_fake_api(options)
 
