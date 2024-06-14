@@ -296,6 +296,7 @@ local function gather_state_modifications(state, first)
 	diff.action_mana_drain = nil
 	diff.action_draw_many_count = nil
 	diff.action_type = nil
+	diff.action_recursive = nil
 	diff.reload_time = nil
 	if not first then
 		diff.fire_rate_wait = nil
