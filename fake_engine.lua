@@ -301,9 +301,9 @@ function M.evaluate(options)
 			delay = math.max(delay, M.reload_time)
 			M.reload_time = nil
 		end
-		delay = math.max(delay, 0)
+		delay = math.max(delay, 1)
 		cur_root.extra = "Delay: " .. delay .. "f, ΔMana: " .. (old_mana - mana)
-		mana = mana + (1 + delay) * options.mana_charge / 60
+		mana = mana + (delay) * options.mana_charge / 60
 	end
 end
 
