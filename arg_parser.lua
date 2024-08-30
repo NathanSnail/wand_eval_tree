@@ -18,6 +18,8 @@ local option_list = {
 	ac = "always_casts",
 	md = "mods",
 	sp = "spells",
+	mp = "mod_path",
+	dp = "data_path",
 }
 
 local defaults = {
@@ -38,6 +40,8 @@ local defaults = {
 	always_casts = {},
 	mods = {},
 	spells = {},
+	mod_path = "/home/nathan/.local/share/Steam/steamapps/common/Noita/",
+	data_path = "/home/nathan/Documents/code/noitadata/",
 }
 
 ---@param name string
@@ -82,6 +86,30 @@ local function integer(name)
 	local base = numeric(name)
 	return function(val)
 		return math.floor(base(val))
+	end
+end
+
+---@param name string
+---@return fun(val: string[]): string
+local function str(name)
+	return function(val)
+		if val[1] then
+			return val[1]
+		end
+		error("no string argument to string option " .. name)
+	end
+end
+
+---@param name string
+---@return fun(val: string[]): string
+local function path(name)
+	local base = str(name)
+	return function(val)
+		local arg = base(val)
+		if arg:sub(#arg) ~= "/" then
+			arg = arg .. "/"
+		end
+		return arg
 	end
 end
 
@@ -135,6 +163,8 @@ local help_defs = {
 	always_casts = "the list of alwayts casts",
 	mods = "the list of mods to load",
 	spells = "the list of spells",
+	data_path = "the path to /Nolla_Games_Noita/ which contains /data/",
+	mod_path = "the path to /Noita/ which contains /mods/",
 }
 
 local help_text = [[
@@ -192,6 +222,8 @@ local complex_option_fns = {
 	number_of_casts = integer("number_of_casts"),
 	always_casts = spell_proccess,
 	mods = identity,
+	mod_path = path("mod_path"),
+	data_path = path("data_path"),
 	spells = spell_proccess,
 	help = function()
 		error("do help!")
@@ -250,6 +282,8 @@ local M = {}
 ---@field always_casts spell[]
 ---@field mods string[]
 ---@field spells spell[]
+---@field mod_path string
+---@field data_path string
 
 ---@param args string[]
 ---@return options
