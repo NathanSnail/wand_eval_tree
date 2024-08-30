@@ -94,8 +94,7 @@ function M.make_fake_api(options)
 
 	regenerate_translations(options)
 
-	local socket = require("socket")
-	local frame = math.floor(socket.gettime() * 1000) % 2 ^ 16
+	local frame = math.floor(os.time() * 1000) % 2 ^ 16
 	function Random(a, b)
 		if not a and not b then
 			return math.random()
