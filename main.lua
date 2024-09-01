@@ -3,8 +3,8 @@ local arg_parser = require("arg_parser")
 local options = arg_parser.parse(arg)
 
 local fake_engine = require("fake_engine")
-fake_engine.data_path = options.mod_path
-fake_engine.mods_path = options.data_path
+fake_engine.data_path = options.data_path
+fake_engine.mods_path = options.mods_path
 fake_engine.make_fake_api(options)
 
 ---@type renderer
