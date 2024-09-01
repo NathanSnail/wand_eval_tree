@@ -85,7 +85,7 @@ function M.make_fake_api(options)
 	package.path = package.path .. ";" .. M.data_path .. "?.lua;" .. M.mods_path .. "?.lua"
 	M.vfs = {
 		["data/translations/common.csv"] = assert(
-			assert(io.open(M.data_path .. "data/translations/common.csv", "r")):read("*a")
+			assert(io.open(M.mods_path .. "data/translations/common.csv", "r")):read("*a")
 		),
 	}
 	local _print = print
