@@ -18,7 +18,7 @@ local option_list = {
 	ac = "always_casts",
 	md = "mods",
 	sp = "spells",
-	mp = "mod_path",
+	mp = "mods_path",
 	dp = "data_path",
 }
 
@@ -40,7 +40,7 @@ local defaults = {
 	always_casts = {},
 	mods = {},
 	spells = {},
-	mod_path = "/home/nathan/.local/share/Steam/steamapps/common/Noita/",
+	mods_path = "/home/nathan/.local/share/Steam/steamapps/common/Noita/",
 	data_path = "/home/nathan/Documents/code/noitadata/",
 }
 
@@ -164,7 +164,7 @@ local help_defs = {
 	mods = "the list of mods to load",
 	spells = "the list of spells",
 	data_path = "the path to /Nolla_Games_Noita/ which contains /data/",
-	mod_path = "the path to /Noita/ which contains /mods/",
+	mods_path = "the path to /Noita/ which contains /mods/",
 }
 
 local help_text = [[
@@ -222,7 +222,7 @@ local complex_option_fns = {
 	number_of_casts = integer("number_of_casts"),
 	always_casts = spell_proccess,
 	mods = identity,
-	mod_path = path("mod_path"),
+	mods_path = path("mods_path"),
 	data_path = path("data_path"),
 	spells = spell_proccess,
 	help = function()
@@ -282,7 +282,7 @@ local M = {}
 ---@field always_casts spell[]
 ---@field mods string[]
 ---@field spells spell[]
----@field mod_path string
+---@field mods_path string
 ---@field data_path string
 
 ---@param args string[]
