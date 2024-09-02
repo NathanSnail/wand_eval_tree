@@ -274,7 +274,7 @@ function M.evaluate(options)
 
 		local old_mana = mana
 		_start_shot(mana)
-		for _, v in ipairs(options.always_casts) do
+		for k, v in ipairs(options.always_casts) do
 			if type(v) == "table" then
 				v = v.name
 			end
@@ -287,6 +287,18 @@ function M.evaluate(options)
 				end
 				_c(...)
 			end]]
+			local _clone_action = clone_action
+			clone_action = function(...)
+				local res = { _clone_action(...) }
+				local dest = ({ ... })[2]
+				local old_action = dest.action
+				dest.action = function(...)
+					local action_res = { old_action({ deck_index = -k })(...) }
+					return unpack(action_res)
+				end
+				clone_action = _clone_action
+				return unpack(res)
+			end
 			_play_permanent_card(v)
 			--_G[s] = _c
 		end
@@ -302,7 +314,7 @@ function M.evaluate(options)
 		end
 		delay = math.max(delay, 1)
 		cur_root.extra = "Delay: " .. delay .. "f, ΔMana: " .. (old_mana - mana)
-		mana = mana + (delay) * options.mana_charge / 60
+		mana = mana + delay * options.mana_charge / 60
 	end
 end
 
