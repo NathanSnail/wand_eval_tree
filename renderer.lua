@@ -73,7 +73,7 @@ end
 ---@param node node
 ---@param val integer
 local function pre_multiply(node, val)
-	node.count = node.count * val
+	node.count = (node.count or 1) * val
 	for _, v in ipairs(node.children) do
 		pre_multiply(v, node.count)
 	end
@@ -211,13 +211,46 @@ local function handle(node, prefix, no_extra, indent_level, engine_data, text_fo
 	end
 end
 
+---@param src node
+---@param indent string?
+---@return string
+local function render_json(src, indent)
+	indent = indent or ""
+	indent = indent .. "\t"
+	---@cast src node
+	local s = "{\n"
+	s = s .. indent .. '"name": ' .. src.name .. ",\n"
+	src.count = src.count or 1
+	s = s .. indent .. '"count": ' .. src.count .. ",\n"
+	src.extra = src.extra or ""
+	s = s .. indent .. '"extra": "' .. src.extra .. '",\n'
+	s = s .. indent .. '"children": [' .. (#src.children ~= 0 and "\n" or "")
+	for k, v in ipairs(src.children) do
+		s = s .. indent .. "\t" .. render_json(v, indent .. "\t")
+		if k ~= #src.children then
+			s = s .. ","
+		end
+		s = s .. "\n"
+	end
+	s = s .. (#src.children ~= 0 and indent or "") .. "]\n"
+	s = s .. indent:sub(2) .. "}"
+
+	return s
+end
+
 ---@param calls node
 ---@param engine_data fake_engine
 ---@param text_formatter text_formatter
 ---@param options options
 ---@return string
 function M.render(calls, engine_data, text_formatter, options)
-	flatten(calls, engine_data)
+	if options.fold then
+		flatten(calls, engine_data)
+	end
+	print_table(calls)
+	if options.json then
+		return render_json(calls)
+	end
 	pre_multiply(calls, 1)
 	local render = { tree_semi_rendered = "", bars = { { start = 1, finish = 0, right_shift = 0, value = 1 } } }
 	if options.tree then

@@ -7,6 +7,8 @@ local option_list = {
 	t = "tree",
 	c = "counts",
 	s = "states",
+	j = "json",
+	f = "fold",
 	ln = "language",
 	sc = "spells_per_cast",
 	wf = "wand_file",
@@ -30,6 +32,8 @@ local defaults = {
 	tree = true,
 	counts = true,
 	states = true,
+	json = false,
+	fold = true,
 	spells_per_cast = 26,
 	wand_file = nil,
 	mana = 10000,
@@ -43,6 +47,19 @@ local defaults = {
 	mods_path = "/home/nathan/.local/share/Steam/steamapps/common/Noita/",
 	data_path = "/home/nathan/Documents/code/noitadata/",
 }
+
+---@param s any
+---@return string
+local function stringify(s)
+	if type(s) == "table" then
+		local build = "{"
+		for k, v in ipairs(s) do
+			build = build .. stringify(v) .. k == #s and "" or ", "
+		end
+		return build .. "}"
+	end
+	return tostring(s)
+end
 
 ---@param name string
 ---@return fun(val: string?): boolean
@@ -144,6 +161,7 @@ local function spell_proccess(x)
 end
 
 local help_order = {
+	"help",
 	"ansi",
 	"drained",
 	"every_other",
@@ -151,7 +169,8 @@ local help_order = {
 	"tree",
 	"counts",
 	"states",
-	"help",
+	"json",
+	"fold",
 	"language",
 	"spells_per_cast",
 	"wand_file",
@@ -168,6 +187,7 @@ local help_order = {
 }
 
 local help_defs = {
+	help = "whether or not to show this menu",
 	ansi = "whether or not to show ansi colour codes and discord formatting",
 	drained = "when true charged spells default to 0 charges, otherwise they use max",
 	every_other = "the initial state of requirement every other",
@@ -175,7 +195,8 @@ local help_defs = {
 	tree = "whether or not to render the tree",
 	counts = "whether or not to show the counts table",
 	states = "whether or not to show the shot states table, tree always renders the shot states",
-	help = "whether or not to show this menu",
+	json = "output json instead of human readable trees",
+	fold = "convert repeated tree nodes into a single node with count",
 	language = "use translations of language given",
 	spells_per_cast = "the number of spells per cast",
 	wand_file = "the file to load a wand from",
@@ -211,7 +232,7 @@ local function help()
 	end
 	for _, full in ipairs(help_order) do
 		local short = inverted[full]
-		print("-" .. short .. " --" .. full .. ": " .. help_defs[full])
+		print("-" .. short .. " --" .. full .. ": " .. help_defs[full] .. " (" .. stringify(defaults[full]) .. ")")
 	end
 end
 
@@ -300,6 +321,8 @@ local M = {}
 ---@field tree boolean
 ---@field counts boolean
 ---@field states boolean
+---@field json boolean
+---@field fold boolean
 ---@field language string?
 ---@field spells_per_cast integer
 ---@field wand_file spell[]? sort of fictional
