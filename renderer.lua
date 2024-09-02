@@ -219,7 +219,7 @@ local function render_json(src, indent)
 	indent = indent .. "\t"
 	---@cast src node
 	local s = "{\n"
-	s = s .. indent .. '"name": ' .. src.name .. ",\n"
+	s = s .. indent .. '"name": "' .. src.name .. '",\n'
 	src.count = src.count or 1
 	s = s .. indent .. '"count": ' .. src.count .. ",\n"
 	src.extra = src.extra or ""
