@@ -21,7 +21,7 @@ end
 
 ---@param node node
 ---@param engine_data fake_engine
-local function flatten(node, engine_data)
+local function fold(node, engine_data)
 	local raw = require("data")
 	local equal = true
 	if engine_data.nodes_to_shot_ref[node] then
@@ -48,24 +48,42 @@ local function flatten(node, engine_data)
 	---@type string | false
 	local last = ""
 	local cur_c = 1
+	local index_set = {}
 	while i <= #node.children do
 		local v = node.children[i]
-		flatten(v, engine_data)
+		fold(v, engine_data)
 		local cur = make_text(v, engine_data)
 		if last == cur and cur ~= false then
+			index_set[node.children[i].index] = true
 			cur_c = cur_c + 1
 			table.remove(node.children, i)
 		else
 			last = cur
 			if i ~= 1 then
+				index_set[node.children[i - 1].index] = true
+				local indexes = {}
+				for k, _ in pairs(index_set) do
+					table.insert(indexes, k)
+				end
+				index_set = {}
 				node.children[i - 1].count = cur_c
+				node.children[i - 1].index = indexes
 				cur_c = 1
 			end
 			i = i + 1
 		end
 	end
 	if i ~= 1 then
+		if node.children[i - 1].index then
+			index_set[node.children[i - 1].index] = true
+		end
+		local indexes = {}
+		for k, _ in pairs(index_set) do
+			table.insert(indexes, k)
+		end
+		index_set = {}
 		node.children[i - 1].count = cur_c
+		node.children[i - 1].index = indexes
 		cur_c = 1
 	end
 end
@@ -90,7 +108,7 @@ end
 ---@field children node[]
 ---@field count integer?
 ---@field extra string?
----@field index integer?
+---@field index (integer|integer[])?
 
 ---@class (exact) bar
 ---@field start integer
@@ -127,7 +145,6 @@ local function post_multiply(incomplete_render, engine_data, text_formatter)
 			bar_idx = bar_idx + 1
 		end
 		local cur_bar = bars[bar_idx]
-		--print_table(cur_bar)
 		local extra = (" "):rep(cur_bar.right_shift - len(colourless) + 1)
 		if cur_bar.start == cur_bar.finish then
 			extra = extra .. "]"
@@ -224,6 +241,13 @@ local function render_json(src, indent)
 	s = s .. indent .. '"count": ' .. src.count .. ",\n"
 	src.extra = src.extra or ""
 	s = s .. indent .. '"extra": "' .. src.extra .. '",\n'
+	src.index = src.index or {}
+	local idx = src.index
+	if type(idx) == "number" then
+		src.index = { idx }
+	end
+	local idx_str = table.concat(src.index, ", ")
+	s = s .. indent .. '"index": [' .. idx_str .. "],\n"
 	s = s .. indent .. '"children": [' .. (#src.children ~= 0 and "\n" or "")
 	for k, v in ipairs(src.children) do
 		s = s .. indent .. "\t" .. render_json(v, indent .. "\t")
@@ -245,7 +269,7 @@ end
 ---@return string
 function M.render(calls, engine_data, text_formatter, options)
 	if options.fold then
-		flatten(calls, engine_data)
+		fold(calls, engine_data)
 	end
 	if options.json then
 		return render_json(calls)
