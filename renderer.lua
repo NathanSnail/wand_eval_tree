@@ -246,6 +246,7 @@ local function render_json(src, indent)
 	if type(idx) == "number" then
 		src.index = { idx }
 	end
+	---@diagnostic disable-next-line: param-type-mismatch
 	local idx_str = table.concat(src.index, ", ")
 	s = s .. indent .. '"index": [' .. idx_str .. "],\n"
 	s = s .. indent .. '"children": [' .. (#src.children ~= 0 and "\n" or "")
