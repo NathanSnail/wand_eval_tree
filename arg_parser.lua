@@ -143,6 +143,30 @@ local function spell_proccess(x)
 	return spells
 end
 
+local help_order = {
+	"ansi",
+	"drained",
+	"every_other",
+	"unlimited_spells",
+	"tree",
+	"counts",
+	"states",
+	"help",
+	"language",
+	"spells_per_cast",
+	"wand_file",
+	"mana",
+	"mana_charge",
+	"reload_time",
+	"cast_delay",
+	"number_of_casts",
+	"always_casts",
+	"mods",
+	"spells",
+	"data_path",
+	"mods_path",
+}
+
 local help_defs = {
 	ansi = "whether or not to show ansi colour codes and discord formatting",
 	drained = "when true charged spells default to 0 charges, otherwise they use max",
@@ -181,8 +205,13 @@ spell options are used like -sp DAMAGE LIGHT_BULLET
 
 local function help()
 	print(help_text)
+	local inverted = {}
 	for k, v in pairs(option_list) do
-		print("-" .. k .. " --" .. v .. ": " .. help_defs[v])
+		inverted[v] = k
+	end
+	for _, full in ipairs(help_order) do
+		local short = inverted[full]
+		print("-" .. short .. " --" .. full .. ": " .. help_defs[full])
 	end
 end
 
