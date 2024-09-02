@@ -247,7 +247,6 @@ function M.render(calls, engine_data, text_formatter, options)
 	if options.fold then
 		flatten(calls, engine_data)
 	end
-	print_table(calls)
 	if options.json then
 		return render_json(calls)
 	end
