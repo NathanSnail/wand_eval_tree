@@ -60,7 +60,9 @@ local function fold(node, engine_data)
 		else
 			last = cur
 			if i ~= 1 then
-				index_set[node.children[i - 1].index] = true
+				if node.children[i - 1].index ~= nil then
+					index_set[node.children[i - 1].index] = true
+				end
 				local indexes = {}
 				for k, _ in pairs(index_set) do
 					table.insert(indexes, k)
