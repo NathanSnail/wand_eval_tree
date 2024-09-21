@@ -1,3 +1,7 @@
+if type(jit) ~= "table" then
+	error("Must be run with luajit!")
+end
+
 ---@type arg_parser
 local arg_parser = require("arg_parser")
 local options = arg_parser.parse(arg)
