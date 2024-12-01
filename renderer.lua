@@ -360,11 +360,11 @@ local function gather_state_modifications(state, first)
 	if not first then
 		diff.fire_rate_wait = nil
 	end
-	diff.extra_entities = diff.extra_entities or ""
 
-	---@param csv string
+	---@param csv string?
 	---@return string[]
 	local function handle_xml_csv(csv)
+		if not csv then return {} end
 		---@type string[]
 		local mods = {}
 		for mod in csv:gmatch("([^,]+)") do
