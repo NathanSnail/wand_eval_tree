@@ -361,27 +361,40 @@ local function gather_state_modifications(state, first)
 		diff.fire_rate_wait = nil
 	end
 	diff.extra_entities = diff.extra_entities or ""
-	---@type string[]
-	local mods = {}
-	for mod in diff.extra_entities:gmatch("([^,]+)") do
-		table.insert(mods, mod)
+
+	---@param csv string
+	---@return string[]
+	local function handle_xml_csv(csv)
+		---@type string[]
+		local mods = {}
+		for mod in csv:gmatch("([^,]+)") do
+			table.insert(mods, mod)
+		end
+		for k, mod in ipairs(mods) do
+			local suffix = mod:gmatch("/[^/]+%.xml")()
+			mods[k] = suffix:sub(2, suffix:len() - 4)
+		end
+		local counted = {}
+		for _, v in ipairs(mods) do
+			counted[v] = (counted[v] or 0) + 1
+		end
+		local numeric = {}
+		for k, v in pairs(counted) do
+			table.insert(numeric, k .. (v == 1 and "" or (" ×" .. tostring(v))))
+		end
+		return numeric
 	end
-	for k, mod in ipairs(mods) do
-		local suffix = mod:gmatch("/[^/]+%.xml")()
-		mods[k] = suffix:sub(2, suffix:len() - 4)
-	end
-	local counted = {}
-	for _, v in ipairs(mods) do
-		counted[v] = (counted[v] or 0) + 1
-	end
-	local numeric = {}
-	for k, v in pairs(counted) do
-		table.insert(numeric, k .. (v == 1 and "" or (" ×" .. tostring(v))))
-	end
-	diff.extra_entities = table.concat(numeric, ", ")
+
+	diff.extra_entities = table.concat(handle_xml_csv(diff.extra_entities), ", ")
 	if diff.extra_entities == "" then
 		diff.extra_entities = nil
 	end
+
+	diff.game_effect_entities = table.concat(handle_xml_csv(diff.game_effect_entities), ", ")
+	if diff.game_effect_entities == "" then
+		diff.game_effect_entities = nil
+	end
+
 	local t = {}
 	for k, v in pairs(diff) do
 		table.insert(t, { k, v })
