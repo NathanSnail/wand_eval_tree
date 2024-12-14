@@ -285,7 +285,7 @@ function M.render(calls, engine_data, text_formatter, options)
 	end
 	render.tree_semi_rendered = render.tree_semi_rendered
 		.. "\n"
-		.. (options.counts and M.render_counts(engine_data, text_formatter) or "")
+		.. (options.counts and M.render_counts(engine_data, text_formatter, options.ansi and not options.tree) or "")
 		.. (options.states and M.render_shot_states(engine_data, text_formatter) or "")
 
 	render.tree_semi_rendered = (options.ansi and "```ansi\n" or "")
@@ -296,8 +296,9 @@ end
 
 ---@param engine_data fake_engine
 ---@param text_formatter text_formatter
+---@param trailing_grey boolean
 ---@return string
-function M.render_counts(engine_data, text_formatter)
+function M.render_counts(engine_data, text_formatter, trailing_grey)
 	local count_pairs = {}
 	local big_length = 0
 	local big_length2 = 0
@@ -316,7 +317,7 @@ function M.render_counts(engine_data, text_formatter)
 		end
 		return a[1] > a[1]
 	end)
-	local count_message = "┌" .. ("─"):rep(big_length + 2) .. "┬" .. ("─"):rep(big_length2 + 2) .. "┐\n"
+	local count_message = (trailing_grey and text_formatter.colour_codes.GREY or "") .. "┌" .. ("─"):rep(big_length + 2) .. "┬" .. ("─"):rep(big_length2 + 2) .. "┐\n"
 	for _, v in ipairs(count_pairs) do
 		count_message = count_message
 			.. "│ "
