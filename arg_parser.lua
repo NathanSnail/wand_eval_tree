@@ -245,12 +245,12 @@ local function help()
 		local short = inverted[full]
 		local extra_space = (short:len() == 1) and " " or ""
 		print(
-			text_formatter.colour_codes.RESET
+			text_formatter.colour_codes.GREY
 				.. "-"
 				.. text_formatter.colour_codes.GREEN
 				.. short
 				.. extra_space
-				.. text_formatter.colour_codes.RESET
+				.. text_formatter.colour_codes.GREY
 				.. " --"
 				.. text_formatter.colour_codes.GREEN
 				.. full
