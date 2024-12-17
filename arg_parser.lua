@@ -225,6 +225,17 @@ spell options are used like -sp DAMAGE LIGHT_BULLET
 ]]
 
 local function help()
+	-- hax for help colours
+	ACTION_TYPE_PROJECTILE = 0
+	ACTION_TYPE_STATIC_PROJECTILE = 0
+	ACTION_TYPE_MODIFIER = 0
+	ACTION_TYPE_UTILITY = 0
+	ACTION_TYPE_MATERIAL = 0
+	ACTION_TYPE_OTHER = 0
+	ACTION_TYPE_DRAW_MANY = 0
+	ACTION_TYPE_PASSIVE = 0
+	local text_formatter = require("text_formatter")
+
 	print(help_text)
 	local inverted = {}
 	for k, v in pairs(option_list) do
@@ -232,7 +243,27 @@ local function help()
 	end
 	for _, full in ipairs(help_order) do
 		local short = inverted[full]
-		print("-" .. short .. " --" .. full .. ": " .. help_defs[full] .. " (" .. stringify(defaults[full]) .. ")")
+		local extra_space = (short:len() == 1) and " " or ""
+		print(
+			text_formatter.colour_codes.RESET
+				.. "-"
+				.. text_formatter.colour_codes.GREEN
+				.. short
+				.. extra_space
+				.. text_formatter.colour_codes.RESET
+				.. " --"
+				.. text_formatter.colour_codes.GREEN
+				.. full
+				.. text_formatter.colour_codes.RESET
+				.. ": "
+				.. help_defs[full]
+				.. text_formatter.colour_codes.GREY
+				.. " ("
+				.. text_formatter.colour_codes.BLUE
+				.. stringify(defaults[full])
+				.. text_formatter.colour_codes.GREY
+				.. ")"
+		)
 	end
 end
 

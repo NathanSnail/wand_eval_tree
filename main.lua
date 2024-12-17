@@ -2,7 +2,6 @@ if type(jit) ~= "table" then
 	error("Must be run with luajit!")
 end
 
----@type arg_parser
 local arg_parser = require("arg_parser")
 local options = arg_parser.parse(arg)
 
@@ -11,7 +10,6 @@ fake_engine.data_path = options.data_path
 fake_engine.mods_path = options.mods_path
 fake_engine.make_fake_api(options)
 
----@type renderer
 local renderer = require("renderer")
 local text_formatter = require("text_formatter")
 ---@diagnostic disable-next-line: lowercase-global
