@@ -1,3 +1,5 @@
+local user_config = require("user_config")
+
 local option_list = {
 	h = "help",
 	a = "ansi",
@@ -24,6 +26,7 @@ local option_list = {
 	dp = "data_path",
 }
 
+---@class config
 local defaults = {
 	ansi = false,
 	drained = false,
@@ -47,6 +50,10 @@ local defaults = {
 	mods_path = "/home/nathan/.local/share/Steam/steamapps/common/Noita/",
 	data_path = "/home/nathan/Documents/code/noitadata/",
 }
+
+for k, v in pairs(user_config) do
+	defaults[k] = v
+end
 
 ---@param s any
 ---@return string
