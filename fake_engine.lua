@@ -21,6 +21,7 @@ local function dbg_wand()
 end
 
 local function easy_add(id, charges, drained, unlimited_spells)
+	id = string.upper(id)
 	for _, v in ipairs(actions) do
 		if v.id == id then
 			if v.max_uses == nil then
