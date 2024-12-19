@@ -21,6 +21,6 @@ mod_interface.load_mods(options.mods)
 fake_engine.initialise_engine(text_formatter, options)
 
 text_formatter.set_colours(options.ansi)
-fake_engine.evaluate(options)
+fake_engine.evaluate(options, text_formatter)
 --image.render(fake_engine.calls, options.spells)
 print(renderer.render(fake_engine.calls, fake_engine, text_formatter, options))

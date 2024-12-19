@@ -26,6 +26,7 @@ local option_list = {
 	dp = "data_path",
 }
 
+-- we duplicate the type to have an inexact variant
 ---@class config
 local defaults = {
 	ansi = false,
