@@ -25,6 +25,7 @@ end
 ---@param options options
 ---@param text_formatter text_formatter
 local function easy_add(id, charges, options, text_formatter)
+	local old_id = id
 	id = id:upper()
 	for _, v in ipairs(actions) do
 		if v.id:upper() == id then
@@ -52,7 +53,7 @@ local function easy_add(id, charges, options, text_formatter)
 			.. text_formatter.colour_codes.RESET
 			.. '"'
 			.. text_formatter.colour_codes.GREEN
-			.. id
+			.. old_id
 			.. text_formatter.colour_codes.RESET
 			.. '"'
 	)
