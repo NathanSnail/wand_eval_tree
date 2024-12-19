@@ -25,9 +25,9 @@ end
 ---@param options options
 ---@param text_formatter text_formatter
 local function easy_add(id, charges, options, text_formatter)
-	id = string.upper(id)
+	id = id:upper()
 	for _, v in ipairs(actions) do
-		if string.upper(v.id) == id then
+		if v.id:upper() == id then
 			if v.max_uses == nil then
 				charges = -1
 			elseif options.unlimited_spells and not v.never_unlimited then
