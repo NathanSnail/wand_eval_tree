@@ -20,21 +20,21 @@ local function dbg_wand()
 	dbg_cards(deck)
 end
 
-local function easy_add(id, charges, drained, unlimited_spells)
+local function easy_add(id, charges, options, text_formatter)
 	id = string.upper(id)
 	for _, v in ipairs(actions) do
 		if v.id == id then
 			if v.max_uses == nil then
 				charges = -1
-			elseif unlimited_spells and not v.never_unlimited then
+			elseif options.unlimited_spells and not v.never_unlimited then
 				charges = -1
-			elseif charges ~= nil then
-				charges = charges
-			elseif drained then
+			elseif charges ~= nil then -- at this point we use the arg
+			elseif options.drained then
 				charges = 0
 			else
 				charges = v.max_uses
 			end
+			---@cast charges integer
 			_add_card_to_deck(id, 0, charges, true)
 			local card = deck[#deck]
 			---@diagnostic disable-next-line: missing-parameter, assign-type-mismatch, param-type-mismatch
@@ -42,6 +42,16 @@ local function easy_add(id, charges, drained, unlimited_spells)
 			return
 		end
 	end
+	error(
+		text_formatter.colour_codes.RED
+			.. "Unknown spell "
+			.. text_formatter.colour_codes.RESET
+			.. '"'
+			.. text_formatter.colour_codes.GREEN
+			.. id
+			.. text_formatter.colour_codes.RESET
+			.. '"'
+	)
 end
 
 ---@class fake_engine
@@ -229,7 +239,8 @@ function M.initialise_engine(text_formatter, options)
 end
 
 ---@param options options
-function M.evaluate(options)
+---@param text_formatter text_formatter
+function M.evaluate(options, text_formatter)
 	---@type node
 	M.calls = { name = "Wand", children = {} }
 	M.nodes_to_shot_ref = {}
@@ -240,10 +251,10 @@ function M.evaluate(options)
 
 	_clear_deck(false)
 	for _, v in ipairs(options.spells) do
-		if type(v) == "table" then
-			easy_add(v.name, v.count, options.drained)
+		if type(v) == "string" then
+			easy_add(v, nil, options, text_formatter)
 		else
-			easy_add(v, nil, options.drained, options.unlimited_spells)
+			easy_add(v.name, v.count, options, text_formatter)
 		end
 	end
 
