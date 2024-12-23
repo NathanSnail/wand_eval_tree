@@ -20,6 +20,32 @@ local function dbg_wand()
 	dbg_cards(deck)
 end
 
+---@param text_formatter text_formatter
+---@param id string
+local function bad_spell(text_formatter, id)
+	error(
+		text_formatter.colour_codes.RED
+			.. "Unknown spell "
+			.. text_formatter.colour_codes.RESET
+			.. '"'
+			.. text_formatter.colour_codes.GREEN
+			.. id
+			.. text_formatter.colour_codes.RESET
+			.. '"'
+	)
+end
+
+---@param text_formatter text_formatter
+---@param id string
+local function is_bad(text_formatter, id)
+	for _, v in ipairs(actions) do
+		if v.id == id then
+			return
+		end
+	end
+	bad_spell(text_formatter, id)
+end
+
 ---@param id string
 ---@param charges integer?
 ---@param options options
@@ -46,16 +72,7 @@ local function easy_add(id, charges, options, text_formatter)
 			return
 		end
 	end
-	error(
-		text_formatter.colour_codes.RED
-			.. "Unknown spell "
-			.. text_formatter.colour_codes.RESET
-			.. '"'
-			.. text_formatter.colour_codes.GREEN
-			.. id
-			.. text_formatter.colour_codes.RESET
-			.. '"'
-	)
+	bad_spell(text_formatter, id)
 end
 
 ---@class fake_engine
@@ -294,6 +311,8 @@ function M.evaluate(options, text_formatter)
 			if type(v) == "table" then
 				v = v.name
 			end
+			---@cast v string
+			is_bad(text_formatter, v)
 			---@cast v string
 			--[[local s = "set_current_action"
 			local _c = _G[s]
