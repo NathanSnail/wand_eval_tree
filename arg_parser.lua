@@ -457,4 +457,26 @@ function M.parse(args)
 	return result
 end
 
+---@param args string[]
+---@return string[] cmp
+function M.complete(args)
+	local cmp = {}
+	local last = args[#args]
+	if last:sub(1, 1) == "-" then
+		local double = last:sub(2, 2) == "-"
+		if not double then
+			table.insert(cmp, "--")
+		end
+		for k, v in pairs(option_list) do
+			if not double then
+				table.insert(cmp, "-" .. k)
+			else
+				table.insert(cmp, "--" .. v)
+			end
+		end
+		return cmp
+	end
+	return cmp
+end
+
 return M
