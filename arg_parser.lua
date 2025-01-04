@@ -457,12 +457,14 @@ function M.parse(args)
 	return result
 end
 
+---@paraam cur_word integer
 ---@param args string[]
 ---@return string[] cmp
-function M.complete(args)
+function M.complete(cur_word, args)
 	local cmp = {}
 	local last = args[#args]
-	if last:sub(1, 1) == "-" then
+	local no_last = #args == 1
+	if no_last or last:sub(1, 1) == "-" then
 		local double = last:sub(2, 2) == "-"
 		if not double then
 			table.insert(cmp, "--")
