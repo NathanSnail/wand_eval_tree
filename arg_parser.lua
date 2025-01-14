@@ -24,6 +24,7 @@ local option_list = {
 	sp = "spells",
 	mp = "mods_path",
 	dp = "data_path",
+	cs = "colour_scheme",
 }
 
 -- we duplicate the type to have an inexact variant
@@ -50,23 +51,49 @@ local defaults = {
 	spells = {},
 	mods_path = "/home/nathan/.local/share/Steam/steamapps/common/Noita/",
 	data_path = "/home/nathan/Documents/code/noitadata/",
+	colour_scheme = {
+		RESET = "0",
+		GREY = "30",
+		RED = "31",
+		GREEN = "32",
+		YELLOW = "33",
+		BLUE = "34",
+		PINK = "35",
+		CYAN = "36",
+	},
 }
 
 for k, v in pairs(user_config) do
 	defaults[k] = v
 end
 
----@param s any
+---@param obj any
+---@param reset_col string
 ---@return string
-local function stringify(s)
-	if type(s) == "table" then
+local function stringify(obj, reset_col)
+	if type(obj) == "table" then
 		local build = "{"
-		for k, v in ipairs(s) do
-			build = build .. stringify(v) .. k == #s and "" or ", "
+		local num_keys = 0
+		for _, _ in pairs(obj) do
+			num_keys = num_keys + 1
+		end
+		if num_keys ~= #obj then
+			-- kinda hacky, but the only thing that uses this is colour codes
+			local ansi = string.char(27)
+			for k, v in pairs(obj) do
+				v = ansi .. "[" .. v .. "m" .. v .. reset_col
+				build = build .. k .. " = " .. v .. ", "
+			end
+			local l = build:len()
+			build = build:sub(1, l - 2) .. "}"
+			return build
+		end
+		for k, v in ipairs(obj) do
+			build = build .. stringify(v, reset_col) .. k == #obj and "" or ", "
 		end
 		return build .. "}"
 	end
-	return tostring(s)
+	return tostring(obj)
 end
 
 ---@param name string
@@ -192,6 +219,7 @@ local help_order = {
 	"spells",
 	"data_path",
 	"mods_path",
+	"colour_scheme",
 }
 
 local help_defs = {
@@ -218,6 +246,7 @@ local help_defs = {
 	spells = "the list of spells",
 	data_path = "the path to /Nolla_Games_Noita/ which contains /data/",
 	mods_path = "the path to /Noita/ which contains /mods/",
+	colour_scheme = "a map written KEY=VALUE where each element maps a key to an ansi escape code",
 }
 
 local help_text = [[
@@ -233,16 +262,8 @@ spell options are used like -sp DAMAGE LIGHT_BULLET
 ]]
 
 local function help()
-	-- hax for help colours
-	ACTION_TYPE_PROJECTILE = 0
-	ACTION_TYPE_STATIC_PROJECTILE = 0
-	ACTION_TYPE_MODIFIER = 0
-	ACTION_TYPE_UTILITY = 0
-	ACTION_TYPE_MATERIAL = 0
-	ACTION_TYPE_OTHER = 0
-	ACTION_TYPE_DRAW_MANY = 0
-	ACTION_TYPE_PASSIVE = 0
 	local text_formatter = require("text_formatter")
+	text_formatter.init_cols(defaults.colour_scheme, true)
 
 	print(help_text)
 	local inverted = {}
@@ -268,10 +289,34 @@ local function help()
 				.. text_formatter.colour_codes.GREY
 				.. " ("
 				.. text_formatter.colour_codes.BLUE
-				.. stringify(defaults[full])
+				.. stringify(defaults[full], text_formatter.colour_codes.BLUE)
 				.. text_formatter.colour_codes.GREY
 				.. ")"
 		)
+	end
+end
+
+---@param name string
+---@param default_values {[string]: string}
+---@return fun(args: string[]): {[string]: string}
+local function map_parse(name, default_values)
+	---@param args string[]
+	---@return {[string]: string}
+	return function(args)
+		local map = {}
+		for k, v in pairs(default_values) do
+			map[k] = v
+		end
+		for _, v in ipairs(args) do
+			local eq = v:find("=")
+			if not eq then
+				error("map value for " .. name .. " without = sign")
+			end
+			local key = v:sub(1, eq - 1)
+			local value = v:sub(eq + 1)
+			map[key] = value
+		end
+		return map
 	end
 end
 
@@ -314,6 +359,7 @@ local complex_option_fns = {
 	mods_path = path("mods_path"),
 	data_path = path("data_path"),
 	spells = spell_proccess,
+	colour_scheme = map_parse("colour_scheme", defaults.colour_scheme),
 	help = function()
 		error("do help!")
 	end,
@@ -375,6 +421,7 @@ local M = {}
 ---@field spells spell[]
 ---@field mods_path string
 ---@field data_path string
+---@field colour_scheme {[string]: string}
 
 ---@param args string[]
 ---@return options
