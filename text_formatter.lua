@@ -1,28 +1,53 @@
 ---@class text_formatter
 local M = {}
 
-local colour_char = string.char(27)
-M.colour_codes =
-	{ RESET = "0", GREY = "30", RED = "31", GREEN = "32", YELLOW = "33", BLUE = "34", PINK = "35", CYAN = "36" }
-for k, v in pairs(M.colour_codes) do
-	M.colour_codes[k] = colour_char .. "[" .. v .. "m"
+local col_map = {}
+
+---@param colour_codes {[string]: string}
+---@param do_cols boolean
+function M.init_cols(colour_codes, do_cols)
+	local colour_char = string.char(27)
+
+	M.colour_codes = {}
+	for k, v in pairs(colour_codes) do
+		M.colour_codes[k] = v
+	end
+
+	if do_cols then
+		for k, v in pairs(M.colour_codes) do
+			M.colour_codes[k] = colour_char .. "[" .. v .. "m"
+		end
+	else
+		for k, _ in pairs(M.colour_codes) do
+			M.colour_codes[k] = ""
+		end
+	end
+
+	-- we may not always be called in a context where the engine exists (i.e. help menu)
+	if ACTION_TYPE_PROJECTILE then
+		col_map = {
+			[ACTION_TYPE_PROJECTILE] = M.colour_codes.RED,
+			[ACTION_TYPE_STATIC_PROJECTILE] = M.colour_codes.RED,
+			[ACTION_TYPE_MODIFIER] = M.colour_codes.BLUE,
+			[ACTION_TYPE_UTILITY] = M.colour_codes.PINK,
+			[ACTION_TYPE_MATERIAL] = M.colour_codes.GREEN,
+			[ACTION_TYPE_OTHER] = M.colour_codes.YELLOW,
+			[ACTION_TYPE_DRAW_MANY] = M.colour_codes.CYAN,
+			[ACTION_TYPE_PASSIVE] = M.colour_codes.CYAN,
+		}
+	end
 end
 
 M.ty_map = {}
-local col_map = {
-	[ACTION_TYPE_PROJECTILE] = M.colour_codes.RED,
-	[ACTION_TYPE_STATIC_PROJECTILE] = M.colour_codes.RED,
-	[ACTION_TYPE_MODIFIER] = M.colour_codes.BLUE,
-	[ACTION_TYPE_UTILITY] = M.colour_codes.PINK,
-	[ACTION_TYPE_MATERIAL] = M.colour_codes.GREEN,
-	[ACTION_TYPE_OTHER] = M.colour_codes.YELLOW,
-	[ACTION_TYPE_DRAW_MANY] = M.colour_codes.CYAN,
-	[ACTION_TYPE_PASSIVE] = M.colour_codes.CYAN,
-}
-local colours = true
 
+---@param id string
+---@return string
 local function colour_of(id)
-	return col_map[M.ty_map[id] or ACTION_TYPE_DRAW_MANY]
+	local key = M.ty_map[id] or ACTION_TYPE_DRAW_MANY
+	if key then
+		return col_map[key]
+	end
+	return ""
 end
 
 ---@param id string
@@ -30,9 +55,7 @@ end
 ---@return string
 function M.id_text(id, translations)
 	local name = translations[id] or id
-	if colours then
-		name = colour_of(id) .. name
-	end
+	name = colour_of(id) .. name
 	return name
 end
 
@@ -44,15 +67,6 @@ function M.colour_compare(a, b)
 		return colour_of(a.name) > colour_of(b.name)
 	end
 	return nil
-end
-
-function M.set_colours(cols)
-	colours = cols
-	if not cols then
-		for k, v in pairs(M.colour_codes) do
-			M.colour_codes[k] = ""
-		end
-	end
 end
 
 return M

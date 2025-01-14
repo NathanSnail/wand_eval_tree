@@ -20,7 +20,8 @@ local mod_interface = require("mod_interface")
 mod_interface.load_mods(options.mods)
 fake_engine.initialise_engine(text_formatter, options)
 
-text_formatter.set_colours(options.ansi)
+text_formatter.init_cols(options.colour_scheme, options.ansi)
+
 fake_engine.evaluate(options, text_formatter)
 --image.render(fake_engine.calls, options.spells)
 print(renderer.render(fake_engine.calls, fake_engine, text_formatter, options))
