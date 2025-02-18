@@ -16,6 +16,7 @@ local option_list = {
 	wf = "wand_file",
 	ma = "mana",
 	mc = "mana_charge",
+	mx = "mana_max",
 	rt = "reload_time",
 	cd = "cast_delay",
 	nc = "number_of_casts",
@@ -43,6 +44,7 @@ local defaults = {
 	wand_file = nil,
 	mana = 10000,
 	mana_charge = 0,
+	mana_max = 10000,
 	reload_time = 0,
 	cast_delay = 0,
 	number_of_casts = 1,
@@ -211,6 +213,7 @@ local help_order = {
 	"wand_file",
 	"mana",
 	"mana_charge",
+	"mana_max",
 	"reload_time",
 	"cast_delay",
 	"number_of_casts",
@@ -236,8 +239,9 @@ local help_defs = {
 	language = "use translations of language given",
 	spells_per_cast = "the number of spells per cast",
 	wand_file = "the file to load a wand from",
-	mana = "the wands starting mana, the wand is assumed to have infinite mana max",
+	mana = "the wands starting mana",
 	mana_charge = "the wands mana charge rate, in mana / second",
+	mana_max = "the maximum amount of mana the wand can hold",
 	reload_time = "the wands base reload time",
 	cast_delay = "the wands base cast delay",
 	number_of_casts = "the number of casts to calculate",
@@ -351,6 +355,7 @@ local complex_option_fns = {
 	end,
 	mana = numeric("mana"),
 	mana_charge = numeric("mana_charge"),
+	mana_max = numeric("mana_max"),
 	reload_time = integer("reload_time"),
 	cast_delay = integer("cast_delay"),
 	number_of_casts = integer("number_of_casts"),
@@ -413,6 +418,7 @@ local M = {}
 ---@field wand_file spell[]? sort of fictional
 ---@field mana number
 ---@field mana_charge number
+---@field mana_max number
 ---@field reload_time integer
 ---@field cast_delay integer
 ---@field number_of_casts integer
