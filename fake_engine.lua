@@ -298,6 +298,7 @@ function M.evaluate(options, text_formatter)
 	mana = options.mana
 	GlobalsSetValue("GUN_ACTION_IF_HALF_STATUS", options.every_other and 1 or 0)
 	for i = 1, options.number_of_casts do
+		mana = math.min(mana, options.mana_max)
 		table.insert(M.calls.children, { name = "Cast #" .. i, children = {} })
 		ConfigGunActionInfo_ReadToLua(unpack(value))
 		_set_gun2()
