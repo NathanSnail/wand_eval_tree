@@ -369,6 +369,7 @@ function M.evaluate(options, text_formatter)
 			error("Some fuzzing options are set but not all, you must specify all fuzz options or none")
 		end
 		local run = 1
+		local notable_run = 1000
 		while true do
 			local spells = {}
 			for _ = 1, options.fuzz_size do
@@ -394,6 +395,10 @@ function M.evaluate(options, text_formatter)
 				end
 				str = str:sub(2) .. text_formatter.colour_codes.RESET
 				print(run .. ": " .. str)
+			end
+			if run == notable_run then
+				print(run)
+				notable_run = notable_run * 5
 			end
 			run = run + 1
 		end
