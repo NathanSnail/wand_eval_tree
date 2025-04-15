@@ -365,12 +365,12 @@ function M.evaluate(options, text_formatter)
 			error("Some fuzzing options are set but not all, you must specify all fuzz options or none")
 		end
 		while true do
-			local read_to_lua_info = reset_wand(options, text_formatter, options.spells)
 			local spells = {}
 			for _ = 1, options.fuzz_size do
 				local spell_choice = math.random(#options.fuzz_pool)
-				table.insert(spells, spell_choice)
+				table.insert(spells, options.fuzz_pool[spell_choice])
 			end
+			local read_to_lua_info = reset_wand(options, text_formatter, spells)
 			for i = 1, options.number_of_casts do -- you can fuzz multiple casts i suppose
 				eval_wand(options, text_formatter, read_to_lua_info, i)
 			end
