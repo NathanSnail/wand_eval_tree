@@ -3,6 +3,9 @@
 ---@type entropy
 local entropy = require("entropy")
 
+---@type prng
+local prng = require("prng")
+
 ---@class (exact) shot_ref
 ---@field state state
 ---@field num_of_cards_to_draw integer
@@ -130,6 +133,7 @@ function M.make_fake_api(options)
 	regenerate_translations(options)
 
 	local frame = entropy.get_entropy()
+	prng.set_seed(frame)
 	math.randomseed(frame)
 	function Random(a, b)
 		if not a and not b then
@@ -373,7 +377,7 @@ function M.evaluate(options, text_formatter)
 		while true do
 			local spells = {}
 			for _ = 1, options.fuzz_size do
-				local spell_choice = math.random(#options.fuzz_pool)
+				local spell_choice = 1 + (prng.get_random_32() % (#options.fuzz_pool - 1))
 				table.insert(spells, options.fuzz_pool[spell_choice])
 			end
 			local read_to_lua_info = reset_wand(options, text_formatter, spells)
