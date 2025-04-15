@@ -205,20 +205,55 @@ end
 ---@param x string[]
 ---@return fuzz_config
 local function fuzz_parse(x)
-	local count_str = x[1]
-	if not count_str then
-		error("missing fuzz count")
-	end
-	local count = tonumber(count_str)
-	if not count then
-		error("fuzz count is not a number, got " .. count_str)
-	end
-	local spell = x[2]
-	if not spell then
-		error("missing fuzz spell")
-	end
 	---@type fuzz_config
-	local config = { count = count, spell = spell }
+	local config = {}
+	for _, item in ipairs(x) do
+		---@type string[]
+		local parts = {}
+		for part in item:gmatch("[^=]+") do
+			table.insert(parts, part)
+		end
+		if #parts ~= 2 then
+			error("missing fuzz parts, should have one = sign, got " .. (#parts - 1))
+		end
+		local spell = parts[1]
+		local count_str = parts[2]
+		local count = tonumber(count_str)
+		local low, high
+		if count then
+			low = count
+			high = count
+		else
+			local range_seperator = count_str:find("%.%.")
+			if not range_seperator then
+				error("missing fuzz range seperator, should be of the form SPELL=LOW..HIGH")
+			end
+
+			local low_str = count_str:sub(1, range_seperator - 1)
+			if low_str == "" then
+				low = 0
+			else
+				low = tonumber(low_str)
+				if not low then
+					error("low part of range is not a number, got " .. low_str)
+				end
+			end
+
+			local high_str = count_str:sub(range_seperator + 2)
+			if high_str == "" then
+				high = 1 / 0
+			else
+				high = tonumber(high_str)
+				if not high then
+					error("high part of range is not a number, got " .. high_str)
+				end
+			end
+		end
+
+		---@type fuzz_config_item
+		local config_item = { spell = spell, low = low, high = high }
+		table.insert(config, config_item)
+	end
 	return config
 end
 
@@ -280,7 +315,7 @@ local help_defs = {
 	mods_path = "the path to /Noita/ which contains /mods/",
 	colour_scheme = "a map written KEY=VALUE where each element maps a key to an ansi escape code",
 	fuzz_pool = "the list of spells to use when fuzzing for a certain condition",
-	fuzz_target = "the spell and count to fuzz for, written COUNT SPELL",
+	fuzz_target = "the spells and counts to fuzz for, written SPELL=LOW..HIGH SPELL=LOW..HIGH where LOW..HIGH is the range [LOW, HIGH]",
 	fuzz_size = "the number of spells in a fuzzer generated wand",
 }
 
@@ -437,9 +472,12 @@ local M = {}
 
 ---@alias spell string | charged_spell
 
----@class (exact) fuzz_config
----@field count integer
----@field spell spell
+---@class (exact) fuzz_config_item
+---@field low integer inclusive
+---@field high integer inclusive
+---@field spell string
+
+---@alias fuzz_config fuzz_config_item[]
 
 ---@class (exact) options
 ---@field ansi boolean
