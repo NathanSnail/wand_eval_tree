@@ -28,6 +28,7 @@ local option_list = {
 	cs = "colour_scheme",
 	fp = "fuzz_pool",
 	ft = "fuzz_target",
+	fs = "fuzz_size",
 }
 
 -- we duplicate the type to have an inexact variant
@@ -249,6 +250,7 @@ local help_order = {
 	"colour_scheme",
 	"fuzz_pool",
 	"fuzz_target",
+	"fuzz_size",
 }
 
 local help_defs = {
@@ -277,8 +279,9 @@ local help_defs = {
 	data_path = "the path to /Nolla_Games_Noita/ which contains /data/",
 	mods_path = "the path to /Noita/ which contains /mods/",
 	colour_scheme = "a map written KEY=VALUE where each element maps a key to an ansi escape code",
-	fuzz_pool = "the list of spells to use when fuzzing for a certain condition, fuzz target must be specified asa well",
+	fuzz_pool = "the list of spells to use when fuzzing for a certain condition",
 	fuzz_target = "the spell and count to fuzz for, written COUNT SPELL",
+	fuzz_size = "the number of spells in a fuzzer generated wand",
 }
 
 local help_text = [[
@@ -393,8 +396,9 @@ local complex_option_fns = {
 	data_path = path("data_path"),
 	spells = spell_parse,
 	colour_scheme = map_parse("colour_scheme", defaults.colour_scheme),
-	full_pool = spell_parse,
+	fuzz_pool = spell_parse,
 	fuzz_target = fuzz_parse,
+	fuzz_size = integer("fuzz_size"),
 	help = function()
 		error("do help!")
 	end,
@@ -462,8 +466,9 @@ local M = {}
 ---@field mods_path string
 ---@field data_path string
 ---@field colour_scheme {[string]: string}
----@field fuzz_pool spell[]
----@field fuzz_target fuzz_config
+---@field fuzz_pool spell[]?
+---@field fuzz_target fuzz_config?
+---@field fuzz_size integer?
 
 ---@param args string[]
 ---@return options
