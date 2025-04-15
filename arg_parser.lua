@@ -26,6 +26,8 @@ local option_list = {
 	mp = "mods_path",
 	dp = "data_path",
 	cs = "colour_scheme",
+	fp = "fuzz_pool",
+	ft = "fuzz_target",
 }
 
 -- we duplicate the type to have an inexact variant
@@ -63,6 +65,8 @@ local defaults = {
 		PINK = "35",
 		CYAN = "36",
 	},
+	full_pool = nil,
+	full_target = nil,
 }
 
 for k, v in pairs(user_config) do
@@ -176,7 +180,7 @@ end
 
 ---@param x string[]
 ---@return spell[]
-local function spell_proccess(x)
+local function spell_parse(x)
 	local ptr = 1
 	local spells = {}
 	while ptr <= #x do
@@ -195,6 +199,26 @@ local function spell_proccess(x)
 		ptr = ptr + 1
 	end
 	return spells
+end
+
+---@param x string[]
+---@return fuzz_config
+local function fuzz_parse(x)
+	local count_str = x[1]
+	if not count_str then
+		error("missing fuzz count")
+	end
+	local count = tonumber(count_str)
+	if not count then
+		error("fuzz count is not a number, got " .. count_str)
+	end
+	local spell = x[2]
+	if not spell then
+		error("missing fuzz spell")
+	end
+	---@type fuzz_config
+	local config = { count = count, spell = spell }
+	return config
 end
 
 local help_order = {
@@ -223,6 +247,8 @@ local help_order = {
 	"data_path",
 	"mods_path",
 	"colour_scheme",
+	"fuzz_pool",
+	"fuzz_target",
 }
 
 local help_defs = {
@@ -251,6 +277,8 @@ local help_defs = {
 	data_path = "the path to /Nolla_Games_Noita/ which contains /data/",
 	mods_path = "the path to /Noita/ which contains /mods/",
 	colour_scheme = "a map written KEY=VALUE where each element maps a key to an ansi escape code",
+	fuzz_pool = "the list of spells to use when fuzzing for a certain condition, fuzz target must be specified asa well",
+	fuzz_target = "the spell and count to fuzz for, written COUNT SPELL",
 }
 
 local help_text = [[
@@ -351,7 +379,7 @@ local complex_option_fns = {
 		for v in spell_str:gmatch("([^ ]+)") do
 			table.insert(spells, v)
 		end
-		return spell_proccess(spells)
+		return spell_parse(spells)
 	end,
 	mana = numeric("mana"),
 	mana_charge = numeric("mana_charge"),
@@ -359,12 +387,14 @@ local complex_option_fns = {
 	reload_time = integer("reload_time"),
 	cast_delay = integer("cast_delay"),
 	number_of_casts = integer("number_of_casts"),
-	always_casts = spell_proccess,
+	always_casts = spell_parse,
 	mods = identity,
 	mods_path = path("mods_path"),
 	data_path = path("data_path"),
-	spells = spell_proccess,
+	spells = spell_parse,
 	colour_scheme = map_parse("colour_scheme", defaults.colour_scheme),
+	full_pool = spell_parse,
+	fuzz_target = fuzz_parse,
 	help = function()
 		error("do help!")
 	end,
@@ -403,6 +433,10 @@ local M = {}
 
 ---@alias spell string | charged_spell
 
+---@class (exact) fuzz_config
+---@field count integer
+---@field spell spell
+
 ---@class (exact) options
 ---@field ansi boolean
 ---@field drained boolean
@@ -428,6 +462,8 @@ local M = {}
 ---@field mods_path string
 ---@field data_path string
 ---@field colour_scheme {[string]: string}
+---@field fuzz_pool spell[]
+---@field fuzz_target fuzz_config
 
 ---@param args string[]
 ---@return options
