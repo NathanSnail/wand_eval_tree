@@ -1,5 +1,8 @@
 -- Set up the api we are using
 
+---@type entropy
+local entropy = require("entropy")
+
 ---@class (exact) shot_ref
 ---@field state state
 ---@field num_of_cards_to_draw integer
@@ -126,7 +129,8 @@ function M.make_fake_api(options)
 
 	regenerate_translations(options)
 
-	local frame = math.floor(os.time() * 1000) % 2 ^ 16
+	local frame = entropy.get_entropy()
+	math.randomseed(frame)
 	function Random(a, b)
 		if not a and not b then
 			return math.random()
@@ -364,6 +368,7 @@ function M.evaluate(options, text_formatter)
 		if not (options.fuzz_pool and options.fuzz_target and options.fuzz_size) then
 			error("Some fuzzing options are set but not all, you must specify all fuzz options or none")
 		end
+		local run = 1
 		while true do
 			local spells = {}
 			for _ = 1, options.fuzz_size do
@@ -374,19 +379,23 @@ function M.evaluate(options, text_formatter)
 			for i = 1, options.number_of_casts do -- you can fuzz multiple casts i suppose
 				eval_wand(options, text_formatter, read_to_lua_info, i)
 			end
+			local failed = false
 			for _, requirement in ipairs(options.fuzz_target) do
 				local count = M.counts[requirement.spell]
 				if not (count and count >= requirement.low and count <= requirement.high) then
-					goto failed
+					failed = true
+					break
 				end
 			end
-			local str = ""
-			for _, spell in ipairs(spells) do
-				str = str .. " " .. text_formatter.id_text(spell, M.translations)
+			if not failed then
+				local str = ""
+				for _, spell in ipairs(spells) do
+					str = str .. " " .. text_formatter.id_text(spell, M.translations)
+				end
+				str = str:sub(2) .. text_formatter.colour_codes.RESET
+				print(run .. ": " .. str)
 			end
-			str = str:sub(2) .. text_formatter.colour_codes.RESET
-			print(str)
-			::failed::
+			run = run + 1
 		end
 	end
 	local read_to_lua_info = reset_wand(options, text_formatter, options.spells)
