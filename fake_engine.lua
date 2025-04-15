@@ -261,7 +261,69 @@ end
 
 ---@param options options
 ---@param text_formatter text_formatter
-function M.evaluate(options, text_formatter)
+---@param read_to_lua_info table
+---@param cast integer
+local function eval_wand(options, text_formatter, read_to_lua_info, cast)
+	mana = math.min(mana, options.mana_max)
+	table.insert(M.calls.children, { name = "Cast #" .. cast, children = {} })
+	ConfigGunActionInfo_ReadToLua(unpack(read_to_lua_info))
+	_set_gun2()
+	M.cur_parent = M.calls.children[#M.calls.children]
+	local cur_root = M.cur_parent
+	M.cur_node = M.cur_parent.children
+
+	local old_mana = mana
+	_start_shot(mana)
+	for k, v in ipairs(options.always_casts) do
+		if type(v) == "table" then
+			v = v.name
+		end
+		---@cast v string
+		is_bad(text_formatter, v)
+		---@cast v string
+		--[[local s = "set_current_action"
+			local _c = _G[s]
+			_G[s] = function(...)
+				for _, v2 in ipairs({ ... }) do
+					print_table(v2)
+				end
+				_c(...)
+			end]]
+		local _clone_action = clone_action
+		clone_action = function(...)
+			local res = { _clone_action(...) }
+			local dest = ({ ... })[2]
+			local old_action = dest.action
+			dest.action = function(...)
+				local action_res = { old_action({ deck_index = -k })(...) }
+				return unpack(action_res)
+			end
+			clone_action = _clone_action
+			return unpack(res)
+		end
+		_play_permanent_card(v)
+		--_G[s] = _c
+	end
+	_draw_actions_for_shot(true)
+	--dbg_wand()
+	local delay = root_shot.state.fire_rate_wait
+
+	-- cursed nolla design.
+	_handle_reload()
+	if M.reload_time then
+		delay = math.max(delay, M.reload_time)
+		M.reload_time = nil
+	end
+	delay = math.max(delay, 1)
+	cur_root.extra = "Delay: " .. delay .. "f, ΔMana: " .. (old_mana - mana)
+	mana = mana + delay * options.mana_charge / 60
+end
+
+---@param options options
+---@param text_formatter text_formatter
+---@param spells spell[]
+---@return table read_to_lua_info the info describing what to pass to the fake lua side from engine
+local function reset_wand(options, text_formatter, spells)
 	---@type node
 	M.calls = { name = "Wand", children = {} }
 	M.nodes_to_shot_ref = {}
@@ -271,7 +333,7 @@ function M.evaluate(options, text_formatter)
 	M.counts = {}
 
 	_clear_deck(false)
-	for _, v in ipairs(options.spells) do
+	for _, v in ipairs(spells) do
 		if type(v) == "string" then
 			easy_add(v, nil, options, text_formatter)
 		else
@@ -284,9 +346,9 @@ function M.evaluate(options, text_formatter)
 	local data = require("data")
 	local arg_list = require("arg_list")
 	data.fire_rate_wait = options.cast_delay
-	local value = {}
+	local read_to_lua_info = {}
 	for _, v in ipairs(arg_list) do
-		table.insert(value, data[v])
+		table.insert(read_to_lua_info, data[v])
 	end
 
 	--[[local _handle = _handle_reload
@@ -297,60 +359,16 @@ function M.evaluate(options, text_formatter)
 	end]]
 	mana = options.mana
 	GlobalsSetValue("GUN_ACTION_IF_HALF_STATUS", options.every_other and 1 or 0)
+
+	return read_to_lua_info
+end
+
+---@param options options
+---@param text_formatter text_formatter
+function M.evaluate(options, text_formatter)
+	local read_to_lua_info = reset_wand(options, text_formatter, options.spells)
 	for i = 1, options.number_of_casts do
-		mana = math.min(mana, options.mana_max)
-		table.insert(M.calls.children, { name = "Cast #" .. i, children = {} })
-		ConfigGunActionInfo_ReadToLua(unpack(value))
-		_set_gun2()
-		M.cur_parent = M.calls.children[#M.calls.children]
-		local cur_root = M.cur_parent
-		M.cur_node = M.cur_parent.children
-
-		local old_mana = mana
-		_start_shot(mana)
-		for k, v in ipairs(options.always_casts) do
-			if type(v) == "table" then
-				v = v.name
-			end
-			---@cast v string
-			is_bad(text_formatter, v)
-			---@cast v string
-			--[[local s = "set_current_action"
-			local _c = _G[s]
-			_G[s] = function(...)
-				for _, v2 in ipairs({ ... }) do
-					print_table(v2)
-				end
-				_c(...)
-			end]]
-			local _clone_action = clone_action
-			clone_action = function(...)
-				local res = { _clone_action(...) }
-				local dest = ({ ... })[2]
-				local old_action = dest.action
-				dest.action = function(...)
-					local action_res = { old_action({ deck_index = -k })(...) }
-					return unpack(action_res)
-				end
-				clone_action = _clone_action
-				return unpack(res)
-			end
-			_play_permanent_card(v)
-			--_G[s] = _c
-		end
-		_draw_actions_for_shot(true)
-		--dbg_wand()
-		local delay = root_shot.state.fire_rate_wait
-
-		-- cursed nolla design.
-		_handle_reload()
-		if M.reload_time then
-			delay = math.max(delay, M.reload_time)
-			M.reload_time = nil
-		end
-		delay = math.max(delay, 1)
-		cur_root.extra = "Delay: " .. delay .. "f, ΔMana: " .. (old_mana - mana)
-		mana = mana + delay * options.mana_charge / 60
+		eval_wand(options, text_formatter, read_to_lua_info, i)
 	end
 end
 
