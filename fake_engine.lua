@@ -374,14 +374,19 @@ function M.evaluate(options, text_formatter)
 			for i = 1, options.number_of_casts do -- you can fuzz multiple casts i suppose
 				eval_wand(options, text_formatter, read_to_lua_info, i)
 			end
-			if M.counts[options.fuzz_target.spell] == options.fuzz_target.count then
-				local str = ""
-				for _, spell in ipairs(spells) do
-					str = str .. " " .. text_formatter.id_text(spell, M.translations)
+			for _, requirement in ipairs(options.fuzz_target) do
+				local count = M.counts[requirement.spell]
+				if not (count and count >= requirement.low and count <= requirement.high) then
+					goto failed
 				end
-				str = str:sub(2) .. text_formatter.colour_codes.RESET
-				print(str)
 			end
+			local str = ""
+			for _, spell in ipairs(spells) do
+				str = str .. " " .. text_formatter.id_text(spell, M.translations)
+			end
+			str = str:sub(2) .. text_formatter.colour_codes.RESET
+			print(str)
+			::failed::
 		end
 	end
 	local read_to_lua_info = reset_wand(options, text_formatter, options.spells)
