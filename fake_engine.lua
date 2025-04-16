@@ -372,6 +372,17 @@ function M.evaluate(options, text_formatter)
 		if not (options.fuzz_pool and options.fuzz_target and options.fuzz_size) then
 			error("Some fuzzing options are set but not all, you must specify all fuzz options or none")
 		end
+
+		for _, constraint in ipairs(options.fuzz_target) do
+			for _, v in ipairs(actions) do
+				if v.id == constraint.spell then
+					goto success
+				end
+			end
+			bad_spell(text_formatter, constraint.spell)
+			::success::
+		end
+
 		local run = 1
 		local notable_run = 1000
 		while true do
@@ -384,6 +395,7 @@ function M.evaluate(options, text_formatter)
 			for i = 1, options.number_of_casts do -- you can fuzz multiple casts i suppose
 				eval_wand(options, text_formatter, read_to_lua_info, i)
 			end
+
 			local failed = false
 			for _, requirement in ipairs(options.fuzz_target) do
 				local count = M.counts[requirement.spell]
@@ -392,6 +404,7 @@ function M.evaluate(options, text_formatter)
 					break
 				end
 			end
+
 			if not failed then
 				local str = ""
 				for _, spell in ipairs(spells) do
@@ -400,6 +413,7 @@ function M.evaluate(options, text_formatter)
 				str = str:sub(2) .. text_formatter.colour_codes.RESET
 				print(run .. ": " .. str)
 			end
+
 			if run == notable_run then
 				print(run)
 				notable_run = notable_run * 5
