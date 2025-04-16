@@ -388,7 +388,7 @@ function M.evaluate(options, text_formatter)
 		while true do
 			local spells = {}
 			for _ = 1, options.fuzz_size do
-				local spell_choice = 1 + (prng.get_random_32() % (#options.fuzz_pool - 1))
+				local spell_choice = 1 + (prng.get_random_32() % #options.fuzz_pool)
 				table.insert(spells, options.fuzz_pool[spell_choice])
 			end
 			local read_to_lua_info = reset_wand(options, text_formatter, spells)
