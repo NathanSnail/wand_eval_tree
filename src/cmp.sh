@@ -2,7 +2,7 @@
 _wand_eval_completions() {
 	local words
 	words="${COMP_WORDS[@]}"  # all the words
-	luajit ./cmp.lua $COMP_WORDS $words
+	luajit ./src/cmp.lua $COMP_WORDS $words
 	# local completions=$(luajit ./cmp.lua $words)
 }
 

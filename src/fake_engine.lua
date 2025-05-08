@@ -1,10 +1,10 @@
 -- Set up the api we are using
 
 ---@type entropy
-local entropy = require("entropy")
+local entropy = require("src.entropy")
 
 ---@type prng
-local prng = require("prng")
+local prng = require("src.prng")
 
 ---@class (exact) shot_ref
 ---@field state state
@@ -351,8 +351,8 @@ local function reset_wand(options, text_formatter, spells)
 
 	ConfigGun_ReadToLua(options.spells_per_cast, false, options.reload_time, 66)
 	_set_gun()
-	local data = require("data")
-	local arg_list = require("arg_list")
+	local data = require("src.data")
+	local arg_list = require("src.arg_list")
 	data.fire_rate_wait = options.cast_delay
 	local read_to_lua_info = {}
 	for _, v in ipairs(arg_list) do

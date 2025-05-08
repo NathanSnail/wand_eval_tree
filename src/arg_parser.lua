@@ -332,7 +332,7 @@ spell options are used like -sp DAMAGE LIGHT_BULLET
 ]]
 
 local function help()
-	local text_formatter = require("text_formatter")
+	local text_formatter = require("src.text_formatter")
 	text_formatter.init_cols(defaults.colour_scheme, true)
 
 	print(help_text)

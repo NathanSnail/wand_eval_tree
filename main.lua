@@ -2,21 +2,21 @@ if type(jit) ~= "table" then
 	error("Must be run with luajit!")
 end
 
-local arg_parser = require("arg_parser")
+local arg_parser = require("src.arg_parser")
 local options = arg_parser.parse(arg)
 
-local fake_engine = require("fake_engine")
+local fake_engine = require("src.fake_engine")
 fake_engine.data_path = options.data_path
 fake_engine.mods_path = options.mods_path
 fake_engine.make_fake_api(options)
 
-local renderer = require("renderer")
-local text_formatter = require("text_formatter")
+local renderer = require("src.renderer")
+local text_formatter = require("src.text_formatter")
 ---@diagnostic disable-next-line: lowercase-global
-print_table = require("print")
-local mod_interface = require("mod_interface")
+print_table = require("src.print")
+local mod_interface = require("src.mod_interface")
 -- ---@type image
---local image = require("image")
+--local image = require("src.image")
 mod_interface.load_mods(options.mods)
 fake_engine.initialise_engine(text_formatter, options)
 
