@@ -44,9 +44,7 @@ M.ty_map = {}
 ---@return string
 local function colour_of(id)
 	local key = M.ty_map[id] or ACTION_TYPE_DRAW_MANY
-	if key then
-		return col_map[key]
-	end
+	if key then return col_map[key] end
 	return ""
 end
 
@@ -63,9 +61,7 @@ end
 ---@param b node
 ---@return boolean?
 function M.colour_compare(a, b)
-	if colour_of(a.name) ~= colour_of(b.name) then
-		return colour_of(a.name) > colour_of(b.name)
-	end
+	if colour_of(a.name) ~= colour_of(b.name) then return colour_of(a.name) > colour_of(b.name) end
 	return nil
 end
 

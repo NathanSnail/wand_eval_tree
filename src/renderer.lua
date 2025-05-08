@@ -5,15 +5,11 @@ local M = {}
 ---@param engine_data fake_engine
 ---@return boolean
 local function make_text(node, engine_data)
-	if engine_data.nodes_to_shot_ref[node] then
-		return false
-	end
+	if engine_data.nodes_to_shot_ref[node] then return false end
 	local build = (node.count or 1) .. " " .. node.name .. " ["
 	for _, v in ipairs(node.children) do
 		local res = make_text(v, engine_data)
-		if res == false then
-			return false
-		end
+		if res == false then return false end
 		build = build .. res
 	end
 	return build .. "]"
@@ -35,7 +31,8 @@ local function fold(node, engine_data)
 			local num = engine_data.shot_refs_to_nums[engine_data.nodes_to_shot_ref[node]]
 			for k, v in pairs(engine_data.shot_refs_to_nums) do
 				if num.real < v.real then
-					engine_data.shot_refs_to_nums[k].disp = engine_data.shot_refs_to_nums[k].disp - 1
+					engine_data.shot_refs_to_nums[k].disp = engine_data.shot_refs_to_nums[k].disp
+						- 1
 				end
 			end
 
@@ -76,9 +73,7 @@ local function fold(node, engine_data)
 		end
 	end
 	if i ~= 1 then
-		if node.children[i - 1].index then
-			index_set[node.children[i - 1].index] = true
-		end
+		if node.children[i - 1].index then index_set[node.children[i - 1].index] = true end
 		local indexes = {}
 		for k, _ in pairs(index_set) do
 			table.insert(indexes, k)
@@ -135,17 +130,13 @@ local function post_multiply(incomplete_render, engine_data, text_formatter)
 	end
 	for k, str in ipairs(out_sp) do
 		local colourless = str:gsub(string.char(27) .. ".-m", "")
-		if bars[bar_idx].finish < k then
-			bar_idx = bar_idx + 1
-		end
+		if bars[bar_idx].finish < k then bar_idx = bar_idx + 1 end
 		bars[bar_idx].right_shift = math.max(bars[bar_idx].right_shift, len(colourless))
 	end
 	bar_idx = 1
 	for line_num, line_text in ipairs(out_sp) do
 		local colourless = line_text:gsub(string.char(27) .. ".-m", "")
-		if bars[bar_idx].finish < line_num then
-			bar_idx = bar_idx + 1
-		end
+		if bars[bar_idx].finish < line_num then bar_idx = bar_idx + 1 end
 		local cur_bar = bars[bar_idx]
 		local extra = (" "):rep(cur_bar.right_shift - len(colourless) + 1)
 		if cur_bar.start == cur_bar.finish then
@@ -164,9 +155,7 @@ local function post_multiply(incomplete_render, engine_data, text_formatter)
 				.. cur_bar.value
 				.. text_formatter.colour_codes.GREY
 		end
-		if cur_bar.value ~= 1 then
-			out_sp[line_num] = out_sp[line_num] .. extra
-		end
+		if cur_bar.value ~= 1 then out_sp[line_num] = out_sp[line_num] .. extra end
 		if engine_data.lines_to_shot_nums[line_num] then
 			out_sp[line_num] = out_sp[line_num]
 				.. " @ "
@@ -187,7 +176,16 @@ end
 ---@param text_formatter text_formatter
 ---@param incomplete_render incomplete_render
 ---@param options options
-local function handle(node, prefix, no_extra, indent_level, engine_data, text_formatter, incomplete_render, options)
+local function handle(
+	node,
+	prefix,
+	no_extra,
+	indent_level,
+	engine_data,
+	text_formatter,
+	incomplete_render,
+	options
+)
 	indent_level = indent_level or 0
 	local t_prefix = ""
 	for k = 1, prefix:len() do
@@ -223,10 +221,17 @@ local function handle(node, prefix, no_extra, indent_level, engine_data, text_fo
 	end
 	for k, v in ipairs(node.children) do
 		local dont = k == #node.children
-		if no_extra then
-			prefix = prefix:sub(1, prefix:len() - 1) .. " "
-		end
-		handle(v, prefix .. "#", dont, indent_level + 1, engine_data, text_formatter, incomplete_render, options)
+		if no_extra then prefix = prefix:sub(1, prefix:len() - 1) .. " " end
+		handle(
+			v,
+			prefix .. "#",
+			dont,
+			indent_level + 1,
+			engine_data,
+			text_formatter,
+			incomplete_render,
+			options
+		)
 	end
 end
 
@@ -245,18 +250,14 @@ local function render_json(src, indent)
 	s = s .. indent .. '"extra": "' .. src.extra .. '",\n'
 	src.index = src.index or {}
 	local idx = src.index
-	if type(idx) == "number" then
-		src.index = { idx }
-	end
+	if type(idx) == "number" then src.index = { idx } end
 	---@diagnostic disable-next-line: param-type-mismatch
 	local idx_str = table.concat(src.index, ", ")
 	s = s .. indent .. '"index": [' .. idx_str .. "],\n"
 	s = s .. indent .. '"children": [' .. (#src.children ~= 0 and "\n" or "")
 	for k, v in ipairs(src.children) do
 		s = s .. indent .. "\t" .. render_json(v, indent .. "\t")
-		if k ~= #src.children then
-			s = s .. ","
-		end
+		if k ~= #src.children then s = s .. "," end
 		s = s .. "\n"
 	end
 	s = s .. (#src.children ~= 0 and indent or "") .. "]\n"
@@ -271,21 +272,24 @@ end
 ---@param options options
 ---@return string
 function M.render(calls, engine_data, text_formatter, options)
-	if options.fold then
-		fold(calls, engine_data)
-	end
-	if options.json then
-		return render_json(calls)
-	end
+	if options.fold then fold(calls, engine_data) end
+	if options.json then return render_json(calls) end
 	pre_multiply(calls, 1)
-	local render = { tree_semi_rendered = "", bars = { { start = 1, finish = 0, right_shift = 0, value = 1 } } }
+	local render = {
+		tree_semi_rendered = "",
+		bars = { { start = 1, finish = 0, right_shift = 0, value = 1 } },
+	}
 	if options.tree then
 		handle(calls, "", false, 0, engine_data, text_formatter, render, options)
 		render = post_multiply(render, engine_data, text_formatter)
 	end
 	render.tree_semi_rendered = render.tree_semi_rendered
 		.. "\n"
-		.. (options.counts and M.render_counts(engine_data, text_formatter, options.ansi and not options.tree) or "")
+		.. (options.counts and M.render_counts(
+			engine_data,
+			text_formatter,
+			options.ansi and not options.tree
+		) or "")
 		.. (options.states and M.render_shot_states(engine_data, text_formatter) or "")
 
 	render.tree_semi_rendered = (options.ansi and "```ansi\n" or "")
@@ -308,16 +312,17 @@ function M.render_counts(engine_data, text_formatter, trailing_grey)
 		big_length2 = math.max(big_length2, tostring(v):len())
 	end
 	table.sort(count_pairs, function(a, b)
-		if a[3] ~= b[3] then
-			return a[3] > b[3]
-		end
+		if a[3] ~= b[3] then return a[3] > b[3] end
 		local res = text_formatter.colour_compare(a[1], b[1])
-		if res ~= nil then
-			return res
-		end
+		if res ~= nil then return res end
 		return a[1] > a[1]
 	end)
-	local count_message = (trailing_grey and text_formatter.colour_codes.GREY or "") .. "┌" .. ("─"):rep(big_length + 2) .. "┬" .. ("─"):rep(big_length2 + 2) .. "┐\n"
+	local count_message = (trailing_grey and text_formatter.colour_codes.GREY or "")
+		.. "┌"
+		.. ("─"):rep(big_length + 2)
+		.. "┬"
+		.. ("─"):rep(big_length2 + 2)
+		.. "┐\n"
 	for _, v in ipairs(count_pairs) do
 		count_message = count_message
 			.. "│ "
@@ -347,9 +352,7 @@ local function gather_state_modifications(state, first)
 	local default = require("src.data")
 	local diff = {}
 	for k, v in pairs(state) do
-		if default[k] ~= v then
-			diff[k] = tostring(v)
-		end
+		if default[k] ~= v then diff[k] = tostring(v) end
 	end
 	diff.action_name = nil
 	diff.action_id = nil
@@ -358,9 +361,7 @@ local function gather_state_modifications(state, first)
 	diff.action_type = nil
 	diff.action_recursive = nil
 	diff.reload_time = nil
-	if not first then
-		diff.fire_rate_wait = nil
-	end
+	if not first then diff.fire_rate_wait = nil end
 
 	---@param csv string?
 	---@return string[]
@@ -387,14 +388,10 @@ local function gather_state_modifications(state, first)
 	end
 
 	diff.extra_entities = table.concat(handle_xml_csv(diff.extra_entities), ", ")
-	if diff.extra_entities == "" then
-		diff.extra_entities = nil
-	end
+	if diff.extra_entities == "" then diff.extra_entities = nil end
 
 	diff.game_effect_entities = table.concat(handle_xml_csv(diff.game_effect_entities), ", ")
-	if diff.game_effect_entities == "" then
-		diff.game_effect_entities = nil
-	end
+	if diff.game_effect_entities == "" then diff.game_effect_entities = nil end
 
 	local t = {}
 	for k, v in pairs(diff) do
@@ -453,7 +450,12 @@ function M.render_shot_states(engine_data, text_formatter)
 				.. (" "):rep(value_width - len(v_str) - 1)
 				.. "│\n"
 		end
-		shot_table = shot_table .. "└" .. ("─"):rep(name_width) .. "┴" .. ("─"):rep(value_width) .. "┘\n"
+		shot_table = shot_table
+			.. "└"
+			.. ("─"):rep(name_width)
+			.. "┴"
+			.. ("─"):rep(value_width)
+			.. "┘\n"
 
 		out = out .. shot_table .. "\n"
 	end

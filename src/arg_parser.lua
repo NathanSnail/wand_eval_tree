@@ -125,16 +125,10 @@ end
 local function numeric(name)
 	return function(val)
 		val = val[1]
-		if not val then
-			error("no numeric value passed to numeric option " .. name)
-		end
-		if val:sub(1, 2) == ".-" then
-			val = val:sub(2)
-		end
+		if not val then error("no numeric value passed to numeric option " .. name) end
+		if val:sub(1, 2) == ".-" then val = val:sub(2) end
 		local value = tonumber(val)
-		if value then
-			return value
-		end
+		if value then return value end
 		error("argument to " .. name .. " cannot be converted to a number")
 	end
 end
@@ -152,9 +146,7 @@ end
 ---@return fun(val: string[]): string
 local function str(name)
 	return function(val)
-		if val[1] then
-			return val[1]
-		end
+		if val[1] then return val[1] end
 		error("no string argument to string option " .. name)
 	end
 end
@@ -165,9 +157,7 @@ local function path(name)
 	local base = str(name)
 	return function(val)
 		local arg = base(val)
-		if arg:sub(#arg) ~= "/" then
-			arg = arg .. "/"
-		end
+		if arg:sub(#arg) ~= "/" then arg = arg .. "/" end
 		return arg
 	end
 end
@@ -187,9 +177,7 @@ local function spell_parse(x)
 	while ptr <= #x do
 		---@type spell
 		local spell = x[ptr]
-		if tonumber(spell) then
-			error("invalid spell sequence with number " .. tonumber(spell))
-		end
+		if tonumber(spell) then error("invalid spell sequence with number " .. tonumber(spell)) end
 		local next = x[ptr + 1]
 		local number = tonumber(next)
 		if number then
@@ -234,9 +222,7 @@ local function fuzz_parse(x)
 				low = 0
 			else
 				low = tonumber(low_str)
-				if not low then
-					error("low part of range is not a number, got " .. low_str)
-				end
+				if not low then error("low part of range is not a number, got " .. low_str) end
 			end
 
 			local high_str = count_str:sub(range_seperator + 2)
@@ -244,9 +230,7 @@ local function fuzz_parse(x)
 				high = 1 / 0
 			else
 				high = tonumber(high_str)
-				if not high then
-					error("high part of range is not a number, got " .. high_str)
-				end
+				if not high then error("high part of range is not a number, got " .. high_str) end
 			end
 		end
 
@@ -379,9 +363,7 @@ local function map_parse(name, default_values)
 		end
 		for _, v in ipairs(args) do
 			local eq = v:find("=")
-			if not eq then
-				error("map value for " .. name .. " without = sign")
-			end
+			if not eq then error("map value for " .. name .. " without = sign") end
 			local key = v:sub(1, eq - 1)
 			local value = v:sub(eq + 1)
 			map[key] = value
@@ -398,20 +380,12 @@ local complex_option_fns = {
 	spells_per_cast = numeric("spells_per_cast"),
 	wand_file = function(args)
 		local file = args[1]
-		if not file then
-			error("Wand file path not passed!")
-		end
+		if not file then error("Wand file path not passed!") end
 		local handle, err = require("io").open(file, "r")
-		if err ~= nil then
-			error("Wand file of path " .. file .. " returned error " .. err)
-		end
-		if not handle then
-			error("Wand file of path " .. file .. " silently failed")
-		end
+		if err ~= nil then error("Wand file of path " .. file .. " returned error " .. err) end
+		if not handle then error("Wand file of path " .. file .. " silently failed") end
 		local spell_str = handle:read("*l")
-		if not spell_str then
-			error("Wand file reading of path " .. file .. " failed")
-		end
+		if not spell_str then error("Wand file reading of path " .. file .. " failed") end
 		---@cast spell_str string
 		local spells = {}
 		for v in spell_str:gmatch("([^ ]+)") do
@@ -447,17 +421,13 @@ local function apply_option(option, value)
 	local short_flag = option:sub(2, 2) ~= "-"
 	if short_flag then
 		local longer = option_list[option:sub(2)]
-		if not longer then
-			error("unknown short flag " .. option)
-		end
+		if not longer then error("unknown short flag " .. option) end
 		option = longer
 	else
 		option = option:sub(3)
 	end
 	if not complex_option_fns[option] then
-		if defaults[option] ~= nil then
-			return boolify(option)(value[1]), option
-		end
+		if defaults[option] ~= nil then return boolify(option)(value[1]), option end
 		error("unknown option " .. option)
 	end
 	return complex_option_fns[option](value), option
@@ -518,9 +488,7 @@ local function internal_parse(args)
 		cur_options[k] = v
 	end
 
-	if #args == 0 then
-		error("must pass args")
-	end
+	if #args == 0 then error("must pass args") end
 	local ptr = 1
 	if args[1]:sub(1, 1) ~= "-" then
 		table.insert(args, 1, "-sp")
@@ -535,9 +503,7 @@ local function internal_parse(args)
 		local is_short_opt = is_opt and not is_long_opt
 		local next_arg = args[ptr + 1]
 		local next_arg_is_opt = false
-		if next_arg then
-			next_arg_is_opt = (next_arg:sub(1, 1) == "-")
-		end
+		if next_arg then next_arg_is_opt = (next_arg:sub(1, 1) == "-") end
 		local flag_block = is_short_opt and (not next_arg or next_arg_is_opt)
 		if flag_block then
 			for i = 2, #cur_arg do
@@ -571,9 +537,7 @@ local function internal_parse(args)
 		end
 		ptr = ptr + 1
 	end
-	if cur_options.wand_file ~= nil then
-		cur_options.spells = cur_options.wand_file
-	end
+	if cur_options.wand_file ~= nil then cur_options.spells = cur_options.wand_file end
 	return cur_options
 end
 
@@ -598,9 +562,7 @@ function M.complete(cur_word, args)
 	local no_last = #args == 1
 	if no_last or last:sub(1, 1) == "-" then
 		local double = last:sub(2, 2) == "-"
-		if not double then
-			table.insert(cmp, "--")
-		end
+		if not double then table.insert(cmp, "--") end
 		for k, v in pairs(option_list) do
 			if not double then
 				table.insert(cmp, "-" .. k)
