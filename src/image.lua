@@ -32,9 +32,7 @@ local function compute_lines(edges, wand)
 	-- forward pass
 	for gap = 1, #wand do
 		for start = 1, #wand - gap do
-			if not edges[start] then
-				goto continue
-			end
+			if not edges[start] then goto continue end
 			for _, v in ipairs(edges[start]) do
 				if v == gap + start then
 					local highest = 0
@@ -125,7 +123,7 @@ function M.render(calls, wand)
 	local lines = compute_lines(graph, wand)
 	--print_table(lines)
 	local img = render_spells(wand)
-	img:resize(100,100)
+	img:resize(100, 100)
 	img:write("new.png")
 end
 

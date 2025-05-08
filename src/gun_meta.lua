@@ -306,4 +306,10 @@ function ConfigGunActionInfo_ReadToLua(
 )
 end
 
-function ConfigGun_ReadToLua(actions_per_round, shuffle_deck_when_empty, reload_time, deck_capacity) end
+function ConfigGun_ReadToLua(
+	actions_per_round,
+	shuffle_deck_when_empty,
+	reload_time,
+	deck_capacity
+)
+end

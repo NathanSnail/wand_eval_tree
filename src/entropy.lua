@@ -50,9 +50,7 @@ function M.get_entropy()
 		data = tv.tv_sec * 1000000 + tv.tv_usec
 	end
 	local entropy = tonumber(bit.bxor(data % 2 ^ 31, pid))
-	if not entropy then
-		error("entropy generation got a nil??")
-	end
+	if not entropy then error("entropy generation got a nil??") end
 	return entropy
 end
 

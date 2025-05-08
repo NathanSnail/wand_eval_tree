@@ -45,9 +45,7 @@ end
 ---@param id string
 local function is_bad(text_formatter, id)
 	for _, v in ipairs(actions) do
-		if v.id == id then
-			return
-		end
+		if v.id == id then return end
 	end
 	bad_spell(text_formatter, id)
 end
@@ -89,12 +87,11 @@ local function regenerate_translations(options)
 	-- print(ModTextFileGetContent("data/translations/common.csv"))
 	local actual_translations = {}
 	local tcsv = require("extra.tcsv")
-	local csv = tcsv.parse(ModTextFileGetContent("data/translations/common.csv"), "common.csv", false)
+	local csv =
+		tcsv.parse(ModTextFileGetContent("data/translations/common.csv"), "common.csv", false)
 	local csv_lang_row = nil
 	for k, v in ipairs(csv.langs) do
-		if v == options.language then
-			csv_lang_row = k + 1
-		end
+		if v == options.language then csv_lang_row = k + 1 end
 	end
 	for _, v in ipairs(csv.rows) do
 		actual_translations[v[1]] = v[csv_lang_row]
@@ -136,9 +133,7 @@ function M.make_fake_api(options)
 	prng.set_seed(frame)
 	math.randomseed(frame)
 	function Random(a, b)
-		if not a and not b then
-			return math.random()
-		end
+		if not a and not b then return math.random() end
 		if not b then
 			b = a
 			a = 0
@@ -155,25 +150,19 @@ function M.make_fake_api(options)
 
 	function ModTextFileGetContent(filename)
 		local success, res = pcall(function()
-			if M.vfs[filename] then
-				return M.vfs[filename]
-			end
+			if M.vfs[filename] then return M.vfs[filename] end
 			if filename:sub(1, 4) == "mods" then
 				return assert(assert(io.open(M.mods_path .. filename)):read("*a"))
 			end
 			return assert(assert(io.open(M.data_path .. filename)):read("*a"))
 		end)
-		if not success then
-			return ""
-		end
+		if not success then return "" end
 		return res
 	end
 
 	function ModTextFileSetContent(filename, new_content)
 		M.vfs[filename] = new_content
-		if filename == "data/translations/common.csv" then
-			regenerate_translations(options)
-		end
+		if filename == "data/translations/common.csv" then regenerate_translations(options) end
 	end
 
 	function GlobalsGetValue(key, value)
@@ -283,9 +272,7 @@ local function eval_wand(options, text_formatter, read_to_lua_info, cast)
 	local old_mana = mana
 	_start_shot(mana)
 	for k, v in ipairs(options.always_casts) do
-		if type(v) == "table" then
-			v = v.name
-		end
+		if type(v) == "table" then v = v.name end
 		---@cast v string
 		is_bad(text_formatter, v)
 		---@cast v string
@@ -370,14 +357,14 @@ end
 function M.evaluate(options, text_formatter)
 	if options.fuzz_pool or options.fuzz_target or options.fuzz_size then
 		if not (options.fuzz_pool and options.fuzz_target and options.fuzz_size) then
-			error("Some fuzzing options are set but not all, you must specify all fuzz options or none")
+			error(
+				"Some fuzzing options are set but not all, you must specify all fuzz options or none"
+			)
 		end
 
 		for _, constraint in ipairs(options.fuzz_target) do
 			for _, v in ipairs(actions) do
-				if v.id == constraint.spell then
-					goto success
-				end
+				if v.id == constraint.spell then goto success end
 			end
 			bad_spell(text_formatter, constraint.spell)
 			::success::
