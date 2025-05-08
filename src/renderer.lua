@@ -22,7 +22,7 @@ end
 ---@param node node
 ---@param engine_data fake_engine
 local function fold(node, engine_data)
-	local raw = require("data")
+	local raw = require("src.data")
 	local equal = true
 	if engine_data.nodes_to_shot_ref[node] then
 		for k, v in pairs(engine_data.nodes_to_shot_ref[node].state) do
@@ -344,7 +344,7 @@ end
 ---@param first boolean
 ---@return {string: string}
 local function gather_state_modifications(state, first)
-	local default = require("data")
+	local default = require("src.data")
 	local diff = {}
 	for k, v in pairs(state) do
 		if default[k] ~= v then
