@@ -41,3 +41,5 @@ Wand
 └────────────────────────────┴──────┘
 ```
 Highlighting available if you run it in a terminal.
+# Autocomplete
+You can get autocomplete for the various flags and arguments by running `source ./src/cmp.sh` which will add the completion script to your shell.
