@@ -165,7 +165,6 @@ function M.make_fake_api(options)
 			if M.vfs[filename] then return M.vfs[filename] end
 			return assert(assert(io.open(M.data_path .. filename)):read("*a"))
 		end)
-		print(filename, success, success and "" or res)
 		if not success then return nil end
 		return res
 	end
