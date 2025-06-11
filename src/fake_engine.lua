@@ -154,9 +154,19 @@ function M.make_fake_api(options)
 			if filename:sub(1, 4) == "mods" then
 				return assert(assert(io.open(M.mods_path .. filename)):read("*a"))
 			end
+			for _, mod in ipairs(options.mods) do
+				local data_filed = io.open(M.mods_path .. "mods/" .. mod .. "/" .. filename)
+				if data_filed then
+					print(filename)
+					M.vfs[filename] = data_filed:read("*a")
+				end
+			end
+			-- recheck for mod /data/
+			if M.vfs[filename] then return M.vfs[filename] end
 			return assert(assert(io.open(M.data_path .. filename)):read("*a"))
 		end)
-		if not success then return "" end
+		print(filename, success, success and "" or res)
+		if not success then return nil end
 		return res
 	end
 
