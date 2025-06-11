@@ -157,7 +157,6 @@ function M.make_fake_api(options)
 			for _, mod in ipairs(options.mods) do
 				local data_filed = io.open(M.mods_path .. "mods/" .. mod .. "/" .. filename)
 				if data_filed then
-					print(filename)
 					M.vfs[filename] = data_filed:read("*a")
 				end
 			end
