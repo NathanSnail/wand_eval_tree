@@ -355,6 +355,7 @@ local function gather_state_modifications(state, first)
 		if default[k] ~= v then diff[k] = tostring(v) end
 	end
 	diff.action_name = nil
+	diff.action_description = nil
 	diff.action_id = nil
 	diff.action_mana_drain = nil
 	diff.action_draw_many_count = nil
