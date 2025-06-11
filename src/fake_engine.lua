@@ -123,6 +123,8 @@ function M.make_fake_api(options)
 			assert(io.open(M.mods_path .. "data/translations/common.csv", "r")):read("*a")
 		),
 	}
+	---@type table<string, any>
+	M.mod_settings = {}
 	local _print = print
 	require("meta.out")
 	print = _print
@@ -156,9 +158,7 @@ function M.make_fake_api(options)
 			end
 			for _, mod in ipairs(options.mods) do
 				local data_filed = io.open(M.mods_path .. "mods/" .. mod .. "/" .. filename)
-				if data_filed then
-					M.vfs[filename] = data_filed:read("*a")
-				end
+				if data_filed then M.vfs[filename] = data_filed:read("*a") end
 			end
 			-- recheck for mod /data/
 			if M.vfs[filename] then return M.vfs[filename] end
@@ -190,8 +190,21 @@ function M.make_fake_api(options)
 		table.insert(append_map[to], from)
 	end
 
+	function ModSettingSet(id, value)
+		M.mod_settings[id] = value
+	end
+
+	function ModSettingGet(id)
+		return M.mod_settings[id]
+	end
+
+	ModSettingGetNextValue = ModSettingGet
+	ModSettingSetNextValue = ModSettingSet
+
 	function dofile(file)
-		local res = { require(file:sub(1, file:len() - 4)) }
+		local content = ModTextFileGetContent(file)
+		if not content then error(file .. " does not exist") end
+		local res = { loadstring(content, file)() }
 		for _, v in ipairs(append_map[file] or {}) do
 			dofile(v)
 		end
