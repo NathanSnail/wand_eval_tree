@@ -112,15 +112,15 @@ local function regenerate_translations(options)
 	end
 end
 
-M.mods_path = ""
+M.noita_path = ""
 M.data_path = ""
 
 ---@param options options
 function M.make_fake_api(options)
-	package.path = package.path .. ";" .. M.data_path .. "?.lua;" .. M.mods_path .. "?.lua"
+	package.path = package.path .. ";" .. M.data_path .. "?.lua;" .. M.noita_path .. "?.lua"
 	M.vfs = {
 		["data/translations/common.csv"] = assert(
-			assert(io.open(M.mods_path .. "data/translations/common.csv", "r")):read("*a")
+			assert(io.open(M.noita_path .. "data/translations/common.csv", "r")):read("*a")
 		),
 	}
 	---@type table<string, any>
@@ -154,10 +154,10 @@ function M.make_fake_api(options)
 		local success, res = pcall(function()
 			if M.vfs[filename] then return M.vfs[filename] end
 			if filename:sub(1, 4) == "mods" then
-				return assert(assert(io.open(M.mods_path .. filename)):read("*a"))
+				return assert(assert(io.open(M.noita_path .. filename)):read("*a"))
 			end
 			for _, mod in ipairs(options.mods) do
-				local data_filed = io.open(M.mods_path .. "mods/" .. mod .. "/" .. filename)
+				local data_filed = io.open(M.noita_path .. "mods/" .. mod .. "/" .. filename)
 				if data_filed then M.vfs[filename] = data_filed:read("*a") end
 			end
 			-- recheck for mod /data/

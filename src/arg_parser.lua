@@ -23,7 +23,7 @@ local option_list = {
 	ac = "always_casts",
 	md = "mods",
 	sp = "spells",
-	mp = "mods_path",
+	mp = "noita_path",
 	dp = "data_path",
 	cs = "colour_scheme",
 	fp = "fuzz_pool",
@@ -54,7 +54,7 @@ local defaults = {
 	always_casts = {},
 	mods = {},
 	spells = {},
-	mods_path = "/home/nathan/.local/share/Steam/steamapps/common/Noita/",
+	noita_path = "/home/nathan/.local/share/Steam/steamapps/common/Noita/",
 	data_path = "/home/nathan/Documents/code/noitadata/",
 	colour_scheme = {
 		RESET = "0",
@@ -265,7 +265,7 @@ local help_order = {
 	"mods",
 	"spells",
 	"data_path",
-	"mods_path",
+	"noita_path",
 	"colour_scheme",
 	"fuzz_pool",
 	"fuzz_target",
@@ -296,7 +296,7 @@ local help_defs = {
 	mods = "the list of mods to load",
 	spells = "the list of spells",
 	data_path = "the path to /Nolla_Games_Noita/ which contains /data/",
-	mods_path = "the path to /Noita/ which contains /mods/",
+	noita_path = "the path to /Noita/ which contains /mods/",
 	colour_scheme = "a map written KEY=VALUE where each element maps a key to an ansi escape code",
 	fuzz_pool = "the list of spells to use when fuzzing for a certain condition",
 	fuzz_target = "the spells and counts to fuzz for, written SPELL=LOW..HIGH SPELL=LOW..HIGH where LOW..HIGH is the range [LOW, HIGH]",
@@ -401,7 +401,7 @@ local complex_option_fns = {
 	number_of_casts = integer("number_of_casts"),
 	always_casts = spell_parse,
 	mods = identity,
-	mods_path = path("mods_path"),
+	noita_path = path("noita_path"),
 	data_path = path("data_path"),
 	spells = spell_parse,
 	colour_scheme = map_parse("colour_scheme", defaults.colour_scheme),
@@ -471,7 +471,7 @@ local M = {}
 ---@field always_casts spell[]
 ---@field mods string[]
 ---@field spells spell[]
----@field mods_path string
+---@field noita_path string
 ---@field data_path string
 ---@field colour_scheme {[string]: string}
 ---@field fuzz_pool spell[]?

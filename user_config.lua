@@ -2,7 +2,7 @@
 
 ---@type config
 local user_config = {
-	--mods_path = "/home/wand_crafter/Noita/"
+	--noita_path = "/home/wand_crafter/Noita/"
 	--data_path = "/home/wand_crafter/noitadata/"
 }
 
