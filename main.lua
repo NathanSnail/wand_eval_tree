@@ -5,7 +5,7 @@ local options = arg_parser.parse(arg)
 
 local fake_engine = require("src.fake_engine")
 fake_engine.data_path = options.data_path
-fake_engine.mods_path = options.mods_path
+fake_engine.noita_path = options.noita_path
 fake_engine.make_fake_api(options)
 
 local renderer = require("src.renderer")
