@@ -203,7 +203,7 @@ function M.make_fake_api(options)
 
 	function dofile(file)
 		local content = ModTextFileGetContent(file)
-		if not content then error(file .. " does not exist") end
+		if not content then error("Could not dofile `" .. file .. "` because it does not exist in the VFS! perhaps your paths are wrong?") end
 		local res = { loadstring(content, file)() }
 		for _, v in ipairs(append_map[file] or {}) do
 			dofile(v)
