@@ -203,7 +203,13 @@ function M.make_fake_api(options)
 
 	function dofile(file)
 		local content = ModTextFileGetContent(file)
-		if not content then error("Could not dofile `" .. file .. "` because it does not exist in the VFS! perhaps your paths are wrong?") end
+		if not content then
+			error(
+				"Could not dofile `"
+					.. file
+					.. "` because it does not exist in the VFS! perhaps your paths are wrong?"
+			)
+		end
 		local res = { loadstring(content, file)() }
 		for _, v in ipairs(append_map[file] or {}) do
 			dofile(v)
@@ -222,6 +228,9 @@ end
 ---@param text_formatter text_formatter
 ---@param options options
 function M.initialise_engine(text_formatter, options)
+	--TODO: this adds ~200ms, but could maybe be good to prevent reading so many files and also means user doesn't need to extract data
+	-- local waker = require("src.waker")
+	-- waker.read_wak(options.noita_path .. "data/data.wak")
 	dofile("data/scripts/gun/gun.lua")
 	local _create_shot = create_shot
 	function create_shot(...)
