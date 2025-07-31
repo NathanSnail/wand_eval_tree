@@ -415,7 +415,7 @@ function M.render_shot_states(engine_data, text_formatter)
 	end
 	local out = ""
 	for num, shot in ipairs(shot_nums_to_refs) do
-		local shot_table = text_formatter.colour_codes.RESET .. "Shot state " .. num .. ":\n"
+		local shot_table = text_formatter.colour_codes.RESET .. "Shot State " .. num .. ":\n"
 		local diff = gather_state_modifications(shot.state, num == 1)
 		local name_width = 0
 		local value_width = 0
