@@ -30,10 +30,12 @@ local option_list = {
 	ft = "fuzz_target",
 	fs = "fuzz_size",
 	fo = "fuzz_out",
+	fm = "fuzz_minimise",
+	fM = "fuzz_maximise",
 }
 
 -- we duplicate the type to have an inexact variant
----@class config
+---@type options
 local defaults = {
 	ansi = false,
 	drained = false,
@@ -69,6 +71,10 @@ local defaults = {
 	},
 	full_pool = nil,
 	full_target = nil,
+	fuzz_size = nil,
+	fuzz_out = nil,
+	fuzz_minimise = nil,
+	fuzz_maximise = nil,
 }
 
 for k, v in pairs(user_config) do
@@ -168,6 +174,13 @@ end
 ---@return T
 local function identity(x)
 	return x
+end
+
+---@generic T
+---@param x T[]
+---@return T
+local function first(x)
+	return x[1]
 end
 
 ---@param x string[]
@@ -272,6 +285,8 @@ local help_order = {
 	"fuzz_target",
 	"fuzz_size",
 	"fuzz_out",
+	"fuzz_minimise",
+	"fuzz_maximise",
 }
 
 local help_defs = {
@@ -303,7 +318,9 @@ local help_defs = {
 	fuzz_pool = "the list of spells to use when fuzzing for a certain condition",
 	fuzz_target = "the spells and counts to fuzz for, written SPELL=LOW..HIGH SPELL=LOW..HIGH where LOW..HIGH is the range [LOW, HIGH]",
 	fuzz_size = "the number of spells in a fuzzer generated wand",
-	fuzz_out = "the spells to output the counts of when a passing match is found"
+	fuzz_out = "the spells to output the counts of when a passing match is found",
+	fuzz_minimise = "whenever a solution with less of this spell in the output counts is found set the new constraint for this spell to be less than it",
+	fuzz_maximise = "whenever a solution with more of this spell in the output counts is found set the new constraint for this spell to be more than it",
 }
 
 local help_text = [[
@@ -377,9 +394,7 @@ end
 
 ---@type table<string, fun(values: string[]): any>
 local complex_option_fns = {
-	language = function(a)
-		return a[1]
-	end,
+	language = first,
 	spells_per_cast = numeric("spells_per_cast"),
 	wand_file = function(args)
 		local file = args[1]
@@ -412,6 +427,8 @@ local complex_option_fns = {
 	fuzz_target = fuzz_parse,
 	fuzz_size = integer("fuzz_size"),
 	fuzz_out = identity,
+	fuzz_minimise = identity,
+	fuzz_maximise = identity,
 	help = function()
 		error("do help!")
 	end,
@@ -482,6 +499,8 @@ local M = {}
 ---@field fuzz_target fuzz_config?
 ---@field fuzz_size integer?
 ---@field fuzz_out string[]?
+---@field fuzz_minimise string[]?
+---@field fuzz_maximise string[]?
 
 ---@param args string[]
 ---@return options
