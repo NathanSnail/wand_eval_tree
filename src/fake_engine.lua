@@ -386,6 +386,7 @@ end
 ---@param text_formatter text_formatter
 ---@param run integer
 local function fuzz_run(options, text_formatter, run)
+	---@type spell[]
 	local spells = {}
 	for _ = 1, options.fuzz_size do
 		local spell_choice = 1 + (prng.get_random_32() % #options.fuzz_pool)
@@ -430,7 +431,11 @@ local function fuzz_run(options, text_formatter, run)
 			.. count
 	end
 	for _, spell in ipairs(spells) do
-		str = str .. " " .. text_formatter.id_text(spell, M.translations)
+		---@type string
+		---@diagnostic disable-next-line: assign-type-mismatch
+		local spell_name = spell
+		if type(spell) == "table" then spell_name = spell.name end
+		str = str .. " " .. text_formatter.id_text(spell_name, M.translations)
 	end
 	str = str:sub(2) .. text_formatter.colour_codes.RESET
 	print(run .. ": " .. str)
