@@ -388,10 +388,18 @@ end
 local function fuzz_run(options, text_formatter, run)
 	---@type spell[]
 	local spells = {}
+
+	for _, spell in ipairs(options.fuzz_begin) do
+		table.insert(spells, spell)
+	end
 	for _ = 1, options.fuzz_size do
 		local spell_choice = 1 + (prng.get_random_32() % #options.fuzz_pool)
 		table.insert(spells, options.fuzz_pool[spell_choice])
 	end
+	for _, spell in ipairs(options.fuzz_end) do
+		table.insert(spells, spell)
+	end
+
 	local read_to_lua_info = reset_wand(options, text_formatter, spells)
 	for i = 1, options.number_of_casts do -- you can fuzz multiple casts i suppose
 		eval_wand(options, text_formatter, read_to_lua_info, i)
@@ -447,10 +455,12 @@ local function fuzz(options, text_formatter)
 	options.fuzz_out = options.fuzz_out or {}
 	options.fuzz_minimise = options.fuzz_minimise or {}
 	options.fuzz_maximise = options.fuzz_maximise or {}
+	options.fuzz_begin = options.fuzz_begin or {}
+	options.fuzz_end = options.fuzz_end or {}
 
 	if not (options.fuzz_pool and options.fuzz_target and options.fuzz_size) then
 		error(
-			"Some fuzzing options are set but not all, you must specify all fuzz options (other than out / min / max) or none"
+			"Some fuzzing options are set but not mandatory ones, you must specify at least (pool, target, size) or none"
 		)
 	end
 
@@ -484,6 +494,8 @@ function M.evaluate(options, text_formatter)
 		or options.fuzz_out
 		or options.fuzz_minimise
 		or options.fuzz_maximise
+		or options.fuzz_begin
+		or options.fuzz_end
 	then
 		fuzz(options, text_formatter)
 	end

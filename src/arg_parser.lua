@@ -32,6 +32,8 @@ local option_list = {
 	fo = "fuzz_out",
 	fm = "fuzz_minimise",
 	fM = "fuzz_maximise",
+	fb = "fuzz_begin",
+	fe = "fuzz_end",
 }
 
 -- we duplicate the type to have an inexact variant
@@ -69,12 +71,15 @@ local defaults = {
 		PINK = "35",
 		CYAN = "36",
 	},
+	-- we want all the fuzz settings to be nil so that we can check if one was specified but not all
 	full_pool = nil,
 	full_target = nil,
 	fuzz_size = nil,
 	fuzz_out = nil,
 	fuzz_minimise = nil,
 	fuzz_maximise = nil,
+	fuzz_begin = nil,
+	fuzz_end = nil,
 }
 
 for k, v in pairs(user_config) do
@@ -287,6 +292,8 @@ local help_order = {
 	"fuzz_out",
 	"fuzz_minimise",
 	"fuzz_maximise",
+	"fuzz_begin",
+	"fuzz_end",
 }
 
 local help_defs = {
@@ -317,10 +324,12 @@ local help_defs = {
 	colour_scheme = "a map written KEY=VALUE where each element maps a key to an ansi escape code",
 	fuzz_pool = "the list of spells to use when fuzzing for a certain condition",
 	fuzz_target = "the spells and counts to fuzz for, written SPELL=LOW..HIGH SPELL=LOW..HIGH where LOW..HIGH is the range [LOW, HIGH]",
-	fuzz_size = "the number of spells in a fuzzer generated wand",
+	fuzz_size = "the number of random spells in a fuzzer generated wand",
 	fuzz_out = "the spells to output the counts of when a passing match is found",
 	fuzz_minimise = "whenever a solution with less of this spell in the output counts is found set the new constraint for this spell to be less than it",
 	fuzz_maximise = "whenever a solution with more of this spell in the output counts is found set the new constraint for this spell to be more than it",
+	fuzz_begin = "spells to add to the start of a fuzzed wand, note these don't take from fuzz_size",
+	fuzz_end = "spells to add to the end of a fuzzed wand, note these don't take from fuzz_size",
 }
 
 local help_text = [[
@@ -429,6 +438,8 @@ local complex_option_fns = {
 	fuzz_out = identity,
 	fuzz_minimise = identity,
 	fuzz_maximise = identity,
+	fuzz_begin = spell_parse,
+	fuzz_end = spell_parse,
 	help = function()
 		error("do help!")
 	end,
@@ -501,6 +512,8 @@ local M = {}
 ---@field fuzz_out string[]?
 ---@field fuzz_minimise string[]?
 ---@field fuzz_maximise string[]?
+---@field fuzz_begin spell[]?
+---@field fuzz_end spell[]?
 
 ---@param args string[]
 ---@return options
