@@ -88,6 +88,7 @@ local function regenerate_translations(options)
 	local actual_translations = {}
 	local tcsv = require("extra.tcsv")
 	local csv =
+		---@diagnostic disable-next-line: param-type-mismatch
 		tcsv.parse(ModTextFileGetContent("data/translations/common.csv"), "common.csv", false)
 	local csv_lang_row = nil
 	for k, v in ipairs(csv.langs) do
@@ -203,7 +204,13 @@ function M.make_fake_api(options)
 
 	function dofile(file)
 		local content = ModTextFileGetContent(file)
-		if not content then error("Could not dofile `" .. file .. "` because it does not exist in the VFS! perhaps your paths are wrong?") end
+		if not content then
+			error(
+				"Could not dofile `"
+					.. file
+					.. "` because it does not exist in the VFS! perhaps your paths are wrong?"
+			)
+		end
 		local res = { loadstring(content, file)() }
 		for _, v in ipairs(append_map[file] or {}) do
 			dofile(v)
@@ -271,6 +278,7 @@ function M.initialise_engine(text_formatter, options)
 				return new
 			end
 			clone = { deck_index = -1 }
+			---@diagnostic disable-next-line: redundant-return-value
 			return unpack({ new(...) })
 		end
 	end
@@ -346,6 +354,7 @@ local function reset_wand(options, text_formatter, spells)
 	M.shot_refs_to_nums = {}
 	M.lines_to_shot_nums = {}
 	M.cur_shot_num = 1
+	---@type table<string, integer>
 	M.counts = {}
 
 	_clear_deck(false)
@@ -376,10 +385,10 @@ end
 ---@param options options
 ---@param text_formatter text_formatter
 function M.evaluate(options, text_formatter)
-	if options.fuzz_pool or options.fuzz_target or options.fuzz_size then
+	if options.fuzz_pool or options.fuzz_target or options.fuzz_size or options.fuzz_out then
 		if not (options.fuzz_pool and options.fuzz_target and options.fuzz_size) then
 			error(
-				"Some fuzzing options are set but not all, you must specify all fuzz options or none"
+				"Some fuzzing options are set but not all, you must specify all fuzz options (other than fuzz out) or none"
 			)
 		end
 
@@ -415,6 +424,15 @@ function M.evaluate(options, text_formatter)
 
 			if not failed then
 				local str = ""
+				for _, out in ipairs(options.fuzz_out) do
+					local count = M.counts[out]
+					str = str
+						.. " "
+						.. text_formatter.id_text(out, M.translations)
+						.. text_formatter.colour_codes.RESET
+						.. "="
+						.. count
+				end
 				for _, spell in ipairs(spells) do
 					str = str .. " " .. text_formatter.id_text(spell, M.translations)
 				end

@@ -2,8 +2,8 @@
 
 ---@type config
 local user_config = {
-	--noita_path = "/home/wand_crafter/Noita/"
-	--data_path = "/home/wand_crafter/noitadata/"
+	noita_path = "/home/nathan/.local/share/Steam/steamapps/common/Noita/",
+	data_path = "/home/nathan/Documents/code/noitadata/",
 }
 
 return user_config

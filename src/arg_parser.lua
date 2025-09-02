@@ -29,6 +29,7 @@ local option_list = {
 	fp = "fuzz_pool",
 	ft = "fuzz_target",
 	fs = "fuzz_size",
+	fo = "fuzz_out",
 }
 
 -- we duplicate the type to have an inexact variant
@@ -270,6 +271,7 @@ local help_order = {
 	"fuzz_pool",
 	"fuzz_target",
 	"fuzz_size",
+	"fuzz_out",
 }
 
 local help_defs = {
@@ -301,6 +303,7 @@ local help_defs = {
 	fuzz_pool = "the list of spells to use when fuzzing for a certain condition",
 	fuzz_target = "the spells and counts to fuzz for, written SPELL=LOW..HIGH SPELL=LOW..HIGH where LOW..HIGH is the range [LOW, HIGH]",
 	fuzz_size = "the number of spells in a fuzzer generated wand",
+	fuzz_out = "the spells to output the counts of when a passing match is found"
 }
 
 local help_text = [[
@@ -408,6 +411,7 @@ local complex_option_fns = {
 	fuzz_pool = spell_parse,
 	fuzz_target = fuzz_parse,
 	fuzz_size = integer("fuzz_size"),
+	fuzz_out = identity,
 	help = function()
 		error("do help!")
 	end,
@@ -477,6 +481,7 @@ local M = {}
 ---@field fuzz_pool spell[]?
 ---@field fuzz_target fuzz_config?
 ---@field fuzz_size integer?
+---@field fuzz_out string[]?
 
 ---@param args string[]
 ---@return options
