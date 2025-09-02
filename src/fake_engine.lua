@@ -384,69 +384,103 @@ end
 
 ---@param options options
 ---@param text_formatter text_formatter
-function M.evaluate(options, text_formatter)
-	if options.fuzz_pool or options.fuzz_target or options.fuzz_size or options.fuzz_out then
-		if not (options.fuzz_pool and options.fuzz_target and options.fuzz_size) then
-			error(
-				"Some fuzzing options are set but not all, you must specify all fuzz options (other than fuzz out) or none"
-			)
-		end
+local function fuzz(options, text_formatter)
+	options.fuzz_out = options.fuzz_out or {}
+	options.fuzz_minimise = options.fuzz_minimise or {}
+	options.fuzz_maximise = options.fuzz_maximise or {}
 
-		for _, constraint in ipairs(options.fuzz_target) do
-			for _, v in ipairs(actions) do
-				if v.id == constraint.spell then goto success end
-			end
-			bad_spell(text_formatter, constraint.spell)
-			::success::
-		end
-
-		local run = 1
-		local notable_run = 1000
-		while true do
-			local spells = {}
-			for _ = 1, options.fuzz_size do
-				local spell_choice = 1 + (prng.get_random_32() % #options.fuzz_pool)
-				table.insert(spells, options.fuzz_pool[spell_choice])
-			end
-			local read_to_lua_info = reset_wand(options, text_formatter, spells)
-			for i = 1, options.number_of_casts do -- you can fuzz multiple casts i suppose
-				eval_wand(options, text_formatter, read_to_lua_info, i)
-			end
-
-			local failed = false
-			for _, requirement in ipairs(options.fuzz_target) do
-				local count = M.counts[requirement.spell]
-				if not (count and count >= requirement.low and count <= requirement.high) then
-					failed = true
-					break
-				end
-			end
-
-			if not failed then
-				local str = ""
-				for _, out in ipairs(options.fuzz_out) do
-					local count = M.counts[out]
-					str = str
-						.. " "
-						.. text_formatter.id_text(out, M.translations)
-						.. text_formatter.colour_codes.RESET
-						.. "="
-						.. count
-				end
-				for _, spell in ipairs(spells) do
-					str = str .. " " .. text_formatter.id_text(spell, M.translations)
-				end
-				str = str:sub(2) .. text_formatter.colour_codes.RESET
-				print(run .. ": " .. str)
-			end
-
-			if run == notable_run then
-				print(run)
-				notable_run = notable_run * 5
-			end
-			run = run + 1
-		end
+	if not (options.fuzz_pool and options.fuzz_target and options.fuzz_size) then
+		error(
+			"Some fuzzing options are set but not all, you must specify all fuzz options (other than out / min / max) or none"
+		)
 	end
+
+	for _, constraint in ipairs(options.fuzz_target) do
+		for _, v in ipairs(actions) do
+			if v.id == constraint.spell then goto success end
+		end
+		bad_spell(text_formatter, constraint.spell)
+		::success::
+	end
+
+	local run = 1
+	local notable_run = 1000
+	while true do
+		local spells = {}
+		for _ = 1, options.fuzz_size do
+			local spell_choice = 1 + (prng.get_random_32() % #options.fuzz_pool)
+			table.insert(spells, options.fuzz_pool[spell_choice])
+		end
+		local read_to_lua_info = reset_wand(options, text_formatter, spells)
+		for i = 1, options.number_of_casts do -- you can fuzz multiple casts i suppose
+			eval_wand(options, text_formatter, read_to_lua_info, i)
+		end
+
+		local failed = false
+		for _, requirement in ipairs(options.fuzz_target) do
+			local count = M.counts[requirement.spell]
+			if not (count and count >= requirement.low and count <= requirement.high) then
+				failed = true
+				break
+			end
+		end
+
+		if not failed then
+			-- mutate the constraints to be stricter
+			for _, constraint in ipairs(options.fuzz_target) do
+				-- we dont need to do min/max because our constraint is neccesarily as strict as the old one
+				for _, maximise in ipairs(options.fuzz_maximise) do
+					if constraint.spell == maximise then
+						constraint.low = M.counts[constraint.spell]
+					end
+				end
+
+				for _, minimise in ipairs(options.fuzz_minimise) do
+					if constraint.spell == minimise then
+						constraint.high = M.counts[constraint.spell]
+					end
+				end
+			end
+
+			local str = ""
+			for _, out in ipairs(options.fuzz_out) do
+				local count = M.counts[out]
+				str = str
+					.. " "
+					.. text_formatter.id_text(out, M.translations)
+					.. text_formatter.colour_codes.RESET
+					.. "="
+					.. count
+			end
+			for _, spell in ipairs(spells) do
+				str = str .. " " .. text_formatter.id_text(spell, M.translations)
+			end
+			str = str:sub(2) .. text_formatter.colour_codes.RESET
+			print(run .. ": " .. str)
+		end
+
+		if run == notable_run then
+			print(run)
+			notable_run = notable_run * 5
+		end
+		run = run + 1
+	end
+end
+
+---@param options options
+---@param text_formatter text_formatter
+function M.evaluate(options, text_formatter)
+	if
+		options.fuzz_pool
+		or options.fuzz_target
+		or options.fuzz_size
+		or options.fuzz_out
+		or options.fuzz_minimise
+		or options.fuzz_maximise
+	then
+		fuzz(options, text_formatter)
+	end
+
 	local read_to_lua_info = reset_wand(options, text_formatter, options.spells)
 	for i = 1, options.number_of_casts do
 		eval_wand(options, text_formatter, read_to_lua_info, i)
