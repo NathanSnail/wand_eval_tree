@@ -1,0 +1,6 @@
+#!/bin/bash
+rg "nathan" < user_config.lua > /dev/null
+if [[ $? -ne 0 ]] ; then
+	echo "config fail"
+	exit 1
+fi
