@@ -164,7 +164,7 @@ local function post_multiply(incomplete_render, engine_data, text_formatter)
 				.. text_formatter.colour_codes.GREY
 		end
 	end
-	local out = table.concat(out_sp, "\n")
+	local out = table.concat(out_sp, "\n") .. "\n"
 	return { tree_semi_rendered = out, bars = bars }
 end
 
@@ -284,12 +284,13 @@ function M.render(calls, engine_data, text_formatter, options)
 		render = post_multiply(render, engine_data, text_formatter)
 	end
 	render.tree_semi_rendered = render.tree_semi_rendered
-		.. "\n"
-		.. (options.counts and M.render_counts(
-			engine_data,
-			text_formatter,
-			options.ansi and not options.tree
-		) or "")
+		.. (
+			options.counts
+				and M.render_counts(engine_data, text_formatter, options.ansi and not options.tree)
+			or ""
+		)
+
+	render.tree_semi_rendered = render.tree_semi_rendered
 		.. (options.states and M.render_shot_states(engine_data, text_formatter) or "")
 
 	render.tree_semi_rendered = (options.ansi and "```ansi\n" or "")
@@ -460,7 +461,9 @@ function M.render_shot_states(engine_data, text_formatter)
 
 		out = out .. shot_table .. "\n"
 	end
-	return out
+
+	---@cast out string
+	return out:sub(1, out:len() - 1)
 end
 
 return M
