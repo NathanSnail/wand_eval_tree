@@ -13,7 +13,6 @@ local option_list = {
 	f = "fold",
 	ln = "language",
 	sc = "spells_per_cast",
-	wf = "wand_file",
 	ma = "mana",
 	mc = "mana_charge",
 	mx = "mana_max",
@@ -49,7 +48,6 @@ local defaults = {
 	json = false,
 	fold = true,
 	spells_per_cast = 26,
-	wand_file = nil,
 	mana = 10000,
 	mana_charge = 0,
 	mana_max = 10000,
@@ -273,7 +271,6 @@ local help_order = {
 	"fold",
 	"language",
 	"spells_per_cast",
-	"wand_file",
 	"mana",
 	"mana_charge",
 	"mana_max",
@@ -309,7 +306,6 @@ local help_defs = {
 	fold = "convert repeated tree nodes into a single node with count",
 	language = "use translations of language given",
 	spells_per_cast = "the number of spells per cast",
-	wand_file = "the file to load a wand from",
 	mana = "the wands starting mana",
 	mana_charge = "the wands mana charge rate, in mana / second",
 	mana_max = "the maximum amount of mana the wand can hold",
@@ -405,21 +401,6 @@ end
 local complex_option_fns = {
 	language = first,
 	spells_per_cast = numeric("spells_per_cast"),
-	wand_file = function(args)
-		local file = args[1]
-		if not file then error("Wand file path not passed!") end
-		local handle, err = require("io").open(file, "r")
-		if err ~= nil then error("Wand file of path " .. file .. " returned error " .. err) end
-		if not handle then error("Wand file of path " .. file .. " silently failed") end
-		local spell_str = handle:read("*l")
-		if not spell_str then error("Wand file reading of path " .. file .. " failed") end
-		---@cast spell_str string
-		local spells = {}
-		for v in spell_str:gmatch("([^ ]+)") do
-			table.insert(spells, v)
-		end
-		return spell_parse(spells)
-	end,
 	mana = numeric("mana"),
 	mana_charge = numeric("mana_charge"),
 	mana_max = numeric("mana_max"),
@@ -493,7 +474,6 @@ local M = {}
 ---@field fold boolean
 ---@field language string?
 ---@field spells_per_cast integer
----@field wand_file spell[]? sort of fictional
 ---@field mana number
 ---@field mana_charge number
 ---@field mana_max number
@@ -574,7 +554,6 @@ local function internal_parse(args)
 		end
 		ptr = ptr + 1
 	end
-	if cur_options.wand_file ~= nil then cur_options.spells = cur_options.wand_file end
 	return cur_options
 end
 

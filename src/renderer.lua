@@ -294,7 +294,7 @@ function M.render(calls, engine_data, text_formatter, options)
 
 	render.tree_semi_rendered = (options.ansi and "```ansi\n" or "")
 		.. render.tree_semi_rendered
-		.. (options.ansi and "\n```" or "")
+		.. (options.ansi and (text_formatter.colour_codes.RESET .. "```") or "")
 	return render.tree_semi_rendered
 end
 
